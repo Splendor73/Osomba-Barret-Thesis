@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Sparkles, Star, Search as SearchIcon, ArrowLeft } from "lucide-react";
+import { Sparkles, Star, Search as SearchIcon, ArrowLeft, AlertCircle } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { StatusBadge } from "../components/StatusBadge";
+import { LoadingSpinner } from "../components/LoadingSpinner";
+import { ErrorMessage } from "../components/ErrorMessage";
 
 interface SuggestionCard {
   id: string;
@@ -54,6 +56,7 @@ export function AIHelpPage() {
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<SuggestionCard[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const queryParam = searchParams.get("q");
@@ -172,7 +175,7 @@ export function AIHelpPage() {
 
             {searching ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#2563EB] border-t-transparent"></div>
+                <LoadingSpinner />
                 <p className="mt-4 text-gray-600">Searching our knowledge base...</p>
               </div>
             ) : results.length > 0 ? (

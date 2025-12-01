@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Eye, ThumbsUp, ThumbsDown, CheckCircle, ChevronLeft, Bookmark } from "lucide-react";
+import { Eye, ThumbsUp, ThumbsDown, CheckCircle, ChevronLeft, Bookmark, Lock, MoreVertical, Send, X } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { StatusBadge } from "../components/StatusBadge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 
 const mockThread = {
   id: "2",
@@ -53,6 +54,47 @@ export function ThreadDetailPage() {
   const navigate = useNavigate();
   const [helpful, setHelpful] = useState<boolean | null>(null);
   const [language, setLanguage] = useState("EN");
+  const [showReplyBox, setShowReplyBox] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [submittingReply, setSubmittingReply] = useState(false);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [threadStatus, setThreadStatus] = useState<"Answered" | "Open" | "Closed">(mockThread.status);
+  const [bookmarked, setBookmarked] = useState(false);
+
+  const handleSubmitReply = () => {
+    if (replyText.trim()) {
+      setSubmittingReply(true);
+      // Simulate API call
+      setTimeout(() => {
+        setSubmittingReply(false);
+        setShowReplyBox(false);
+        setReplyText("");
+        setThreadStatus("Answered");
+        alert("Reply posted successfully!");
+      }, 1000);
+    }
+  };
+
+  const handleCloseThread = () => {
+    if (confirm("Are you sure you want to close this thread?")) {
+      setThreadStatus("Closed");
+      setShowActionsMenu(false);
+    }
+  };
+
+  const handleLockThread = () => {
+    if (confirm("Are you sure you want to lock this thread?")) {
+      setShowActionsMenu(false);
+      alert("Thread locked successfully!");
+    }
+  };
+
+  const handleBookmarkFAQ = () => {
+    setBookmarked(true);
+    setTimeout(() => {
+      alert("Thread bookmarked as FAQ!");
+    }, 300);
+  };
 
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
@@ -198,6 +240,104 @@ export function ThreadDetailPage() {
                 )}
               </div>
             </div>
+
+            {/* Reply Box */}
+            {showReplyBox && (
+              <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-gray-900">Post a Reply</h3>
+                  <button
+                    onClick={() => setShowReplyBox(false)}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-600" />
+                  </button>
+                </div>
+                <textarea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg mb-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                  placeholder="Type your reply here..."
+                />
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleSubmitReply}
+                    className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
+                      submittingReply ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
+                    }`}
+                    disabled={submittingReply || !replyText.trim()}
+                  >
+                    {submittingReply ? (
+                      <>
+                        <LoadingSpinner size="small" />
+                        Posting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Post Reply
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShowReplyBox(false)}
+                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Agent Action Buttons */}
+            {threadStatus !== "Closed" && (
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h4 className="mb-4 text-gray-900">Agent Actions</h4>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => setShowReplyBox(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors"
+                  >
+                    <Send className="w-4 h-4" />
+                    Reply to Thread
+                  </button>
+                  <button
+                    onClick={handleCloseThread}
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Mark as Answered
+                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowActionsMenu(!showActionsMenu)}
+                      className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                      More Actions
+                    </button>
+                    {showActionsMenu && (
+                      <div className="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-lg border border-gray-200 py-2 w-48 z-10">
+                        <button
+                          onClick={handleLockThread}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Lock className="w-4 h-4" />
+                          Lock Thread
+                        </button>
+                        <button
+                          onClick={handleBookmarkFAQ}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Bookmark className="w-4 h-4" />
+                          Save as FAQ
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar - Related Threads */}
@@ -227,7 +367,10 @@ export function ThreadDetailPage() {
         </div>
 
         {/* Floating Action Button */}
-        <button className="fixed bottom-8 right-8 bg-[#2563EB] text-white p-4 rounded-full shadow-lg hover:bg-[#1d4ed8] transition-colors flex items-center gap-2">
+        <button
+          className="fixed bottom-8 right-8 bg-[#2563EB] text-white p-4 rounded-full shadow-lg hover:bg-[#1d4ed8] transition-colors flex items-center gap-2"
+          onClick={handleBookmarkFAQ}
+        >
           <Bookmark className="w-5 h-5" />
           <span className="hidden md:inline">Bookmark as FAQ</span>
         </button>

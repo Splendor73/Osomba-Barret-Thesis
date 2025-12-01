@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Sparkles } from "lucide-react";
 import { QuestionCard } from "../components/QuestionCard";
 import { Sidebar } from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
+import { QuestionCardSkeleton } from "../components/SkeletonLoader";
+import { LoadingSpinner } from "../components/LoadingSpinner";
+import { ErrorMessage } from "../components/ErrorMessage";
 
 const categoryPills = [
   { name: "Payments", emoji: "💳" },
@@ -100,7 +103,7 @@ export function HomePage() {
           <h1 className="mb-8 text-gray-900">How can we help you?</h1>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="mb-8">
+          <form onSubmit={handleSearch} className="mb-6">
             <div className="relative max-w-2xl mx-auto">
               <input
                 type="text"
@@ -112,6 +115,17 @@ export function HomePage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
           </form>
+
+          {/* AI Help Button */}
+          <div className="mb-8 flex justify-center">
+            <button
+              onClick={() => navigate('/ai-help')}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#2563EB] to-[#7C3AED] text-white rounded-lg shadow-md hover:shadow-lg transition-all hover:scale-105"
+            >
+              <Sparkles className="w-5 h-5" />
+              <span>Try AI-Powered Help</span>
+            </button>
+          </div>
 
           {/* Category Pills */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 max-w-4xl mx-auto">

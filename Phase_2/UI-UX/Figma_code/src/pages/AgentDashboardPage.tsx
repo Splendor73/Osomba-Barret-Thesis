@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { ThreadTableSkeleton } from "../components/SkeletonLoader";
+import { ErrorMessage } from "../components/ErrorMessage";
 
 interface Thread {
   id: string;
