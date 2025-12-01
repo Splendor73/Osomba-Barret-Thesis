@@ -1,0 +1,38 @@
+flowchart TD
+    Start([Agent Logs In]) --> Dashboard[Agent Dashboard]
+    Dashboard --> ViewList[View Unanswered Threads<br/>Sorted by Date/Views]
+    ViewList --> Filter{Apply Filters?}
+    
+    Filter -->|Yes| FilterBy[Filter by Category<br/>or Date Range]
+    FilterBy --> ViewList
+    Filter -->|No| SelectThread
+    
+    SelectThread[Click Thread to Open] --> ReadThread[Read Customer Question]
+    ReadThread --> WriteAnswer[Write Official Answer<br/>in Rich Text Editor]
+    WriteAnswer --> PreviewAnswer{Preview Answer?}
+    
+    PreviewAnswer -->|Yes| ViewPreview[See How Answer Looks]
+    ViewPreview --> EditAnswer{Need Edits?}
+    EditAnswer -->|Yes| WriteAnswer
+    EditAnswer -->|No| SubmitAnswer
+    
+    PreviewAnswer -->|No| SubmitAnswer[Submit Official Answer]
+    SubmitAnswer --> ThreadMarked[Thread Status: Answered<br/>Customer Gets Email]
+    ThreadMarked --> BookmarkOption{Convert to FAQ?}
+    
+    BookmarkOption -->|Yes| CreateDraft[Click 'Bookmark as FAQ'<br/>Draft FAQ Created]
+    CreateDraft --> EditFAQ[Edit FAQ Draft<br/>Improve Title/Formatting]
+    EditFAQ --> PublishFAQ[Publish FAQ]
+    PublishFAQ --> FAQIndexed[FAQ Gets Indexed<br/>for AI Suggestions]
+    FAQIndexed --> EndPublished([FAQ Published ✓])
+    
+    BookmarkOption -->|No| NextThread{More Threads?}
+    NextThread -->|Yes| ViewList
+    NextThread -->|No| EndSession([Session Complete])
+    
+    style Start fill:#e3f2fd
+    style EndPublished fill:#c8e6c9
+    style EndSession fill:#c8e6c9
+    style Dashboard fill:#fff3e0
+    style SubmitAnswer fill:#bbdefb
+    style PublishFAQ fill:#c5cae9

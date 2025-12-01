@@ -1,0 +1,39 @@
+flowchart TD
+    Start([User Clicks AI Help Board]) --> Interface[Clean Interface Loads<br/>Text Input Box Centered]
+    Interface --> TypeQuery[User Types Question<br/>Min 10 Characters]
+    TypeQuery --> ValidQuery{Valid Query?}
+    
+    ValidQuery -->|No| ShowError[Show Error:<br/>'Please enter at least 10 characters']
+    ShowError --> TypeQuery
+    
+    ValidQuery -->|Yes| SubmitQuery[User Clicks 'Get Help']
+    SubmitQuery --> Loading[Show Loading Spinner<br/>'Searching...']
+    Loading --> GenerateEmbed[Backend: Generate<br/>Query Embedding]
+    GenerateEmbed --> VectorSearch[Backend: Vector Search<br/>in FAQ + Forum Content]
+    VectorSearch --> CalcScores[Backend: Calculate<br/>Similarity Scores]
+    CalcScores --> CheckScores{Any Score > 60%?}
+    
+    CheckScores -->|Yes| ShowResults[Display Top 3-5 Results<br/>with Scores]
+    ShowResults --> ResultCards[Each Result Shows:<br/>- Title<br/>- Snippet<br/>- Score Stars<br/>- Source Badge]
+    ResultCards --> UserReviews{User Clicks Result?}
+    
+    UserReviews -->|Yes| ViewFull[Open Full FAQ/Forum Post]
+    ViewFull --> LogSuccess[Backend: Log Query<br/>Escalated = False]
+    LogSuccess --> EndSuccess([Problem Solved ✓])
+    
+    UserReviews -->|No| ClickHelp[User Clicks<br/>'Still Need Help?']
+    ClickHelp --> PrefillForm[Redirect to Post Form<br/>Query Pre-filled]
+    PrefillForm --> CustomerPosts[Customer Completes<br/>& Submits Post]
+    CustomerPosts --> LogEscalation[Backend: Log Query<br/>Escalated = True]
+    LogEscalation --> EndEscalated([Escalated to Forum])
+    
+    CheckScores -->|No| NoResults[Show Message:<br/>'No good matches found']
+    NoResults --> SuggestForum[Show Button:<br/>'Post Your Question']
+    SuggestForum --> PrefillForm
+    
+    style Start fill:#e3f2fd
+    style EndSuccess fill:#c8e6c9
+    style EndEscalated fill:#fff9c4
+    style Loading fill:#f3e5f5
+    style ShowResults fill:#e1f5fe
+    style NoResults fill:#ffebee

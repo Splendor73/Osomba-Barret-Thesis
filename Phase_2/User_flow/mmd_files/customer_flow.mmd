@@ -1,0 +1,33 @@
+flowchart TD
+    Start([Customer Visits Homepage]) --> Search{Searches for Answer}
+    Search --> Results[View Search Results<br/>FAQs + Forum Posts]
+    Results --> Found{Found Answer?}
+    
+    Found -->|Yes| ReadFAQ[Read FAQ/Forum Post]
+    ReadFAQ --> Helpful{Was it Helpful?}
+    Helpful -->|Yes| EndGood([Problem Solved ✓])
+    Helpful -->|No| TryAI
+    
+    Found -->|No| TryAI[Try AI Help Board]
+    TryAI --> AIQuery[Ask Question to AI]
+    AIQuery --> AISuggestions[View AI Suggestions<br/>with Confidence Scores]
+    AISuggestions --> AIHelpful{Suggestions Helpful?}
+    
+    AIHelpful -->|Yes| ReadSuggestion[Click Through to<br/>Read Full Content]
+    ReadSuggestion --> EndGood
+    
+    AIHelpful -->|No| PostForm[Click 'Still Need Help?']
+    PostForm --> FillForm[Fill Post Form<br/>Title, Body, Category]
+    FillForm --> Submit[Submit Question]
+    Submit --> Confirmation[Confirmation Message]
+    Confirmation --> WaitAnswer[Wait for Agent Answer]
+    WaitAnswer --> EmailNotif[Receive Email Notification]
+    EmailNotif --> ReadAnswer[Read Official Answer]
+    ReadAnswer --> EndAnswered([Question Answered ✓])
+    
+    style Start fill:#e3f2fd
+    style EndGood fill:#c8e6c9
+    style EndAnswered fill:#c8e6c9
+    style Search fill:#fff3e0
+    style TryAI fill:#f3e5f5
+    style PostForm fill:#ffebee

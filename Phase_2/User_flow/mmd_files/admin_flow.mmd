@@ -1,0 +1,43 @@
+flowchart TD
+    Start([Admin Logs In]) --> AdminDash[Admin Dashboard]
+    AdminDash --> ViewOption{What to Do?}
+    
+    ViewOption -->|View Analytics| Analytics[View KPI Dashboard]
+    Analytics --> ViewKPIs[See Metrics:<br/>- Total Posts<br/>- Deflection Rate<br/>- Response Time<br/>- FAQ Views]
+    ViewKPIs --> ViewCharts[View Charts:<br/>- Posts Over Time<br/>- Category Distribution<br/>- Top Questions]
+    ViewCharts --> ExportData{Export Data?}
+    ExportData -->|Yes| DownloadCSV[Download CSV Report]
+    DownloadCSV --> EndAnalytics([Analysis Complete])
+    ExportData -->|No| EndAnalytics
+    
+    ViewOption -->|Manage Users| UserMgmt[User Management Page]
+    UserMgmt --> SearchUser[Search for User<br/>by Email/Name]
+    SearchUser --> SelectUser[Select User]
+    SelectUser --> ChangeRole[Change Role<br/>Customer → Agent → Admin]
+    ChangeRole --> ConfirmChange{Confirm?}
+    ConfirmChange -->|Yes| RoleUpdated[Role Updated<br/>Logged in Audit Trail]
+    RoleUpdated --> EndUserMgmt([User Management Done])
+    ConfirmChange -->|No| UserMgmt
+    
+    ViewOption -->|Manage Categories| CategoryMgmt[Category Management]
+    CategoryMgmt --> CategoryAction{Action?}
+    CategoryAction -->|Add New| AddCategory[Create New Category<br/>Name, Icon, Order]
+    AddCategory --> SaveCategory[Save Category]
+    SaveCategory --> EndCategoryMgmt([Category Added])
+    
+    CategoryAction -->|Edit Existing| EditCategory[Edit Category Details]
+    EditCategory --> SaveCategory
+    
+    CategoryAction -->|Archive| ArchiveCategory[Archive Unused Category]
+    ArchiveCategory --> EndCategoryMgmt
+    
+    ViewOption -->|Done| Logout([Logout])
+    
+    style Start fill:#e3f2fd
+    style EndAnalytics fill:#c8e6c9
+    style EndUserMgmt fill:#c8e6c9
+    style EndCategoryMgmt fill:#c8e6c9
+    style Logout fill:#c8e6c9
+    style Analytics fill:#fff3e0
+    style UserMgmt fill:#f3e5f5
+    style CategoryMgmt fill:#e1f5fe
