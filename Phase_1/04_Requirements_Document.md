@@ -446,31 +446,4 @@ The following features are explicitly OUT OF SCOPE for this thesis project:
 
 ---
 
-## Approval & Sign-Off
-
-**Thesis Director Approval:**  
-Name: _______________________  
-Signature: _______________________  
-Date: _______________________
-
-**Sponsor Approval:**  
-Name: _______________________  
-Signature: _______________________  
-Date: _______________________
-
-**Student Acknowledgment:**  
-Name: Yashu Gautamkumar Patel  
-Signature: _______________________  
-Date: November 30, 2025
-
----
-
-## Revision History
-
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | Nov 30, 2025 | Yashu Patel | Initial requirements document |
-
----
-
 **End of Requirements Document**

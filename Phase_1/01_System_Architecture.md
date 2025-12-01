@@ -280,13 +280,4 @@ With the system architecture defined, the next bi-weekly period will focus on:
 
 ---
 
-## Approval & Sign-off
 
-**Thesis Director Review:** [ ] Approved [ ] Needs Revision  
-**Sponsor Review:** [ ] Approved [ ] Needs Revision  
-**Date:** _______________
-
----
-
-**Document Version:** 1.0  
-**Last Updated:** November 30, 2025

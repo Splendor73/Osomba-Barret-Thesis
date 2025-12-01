@@ -539,14 +539,4 @@ ORDER BY date DESC;
 
 ---
 
-## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | Nov 30, 2025 | Initial schema design |
-
----
-
-**Approval:**
-- Thesis Director: [ ] Approved
-- Database Reviewer: [ ] Approved

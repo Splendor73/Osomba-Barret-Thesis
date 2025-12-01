@@ -889,14 +889,4 @@ All list endpoints support pagination:
 
 ---
 
-## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | Nov 30, 2025 | Initial API specification |
-
----
-
-**Approval:**
-- Thesis Director: [ ] Approved
-- Technical Reviewer: [ ] Approved
