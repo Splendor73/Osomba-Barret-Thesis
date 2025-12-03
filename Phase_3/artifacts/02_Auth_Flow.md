@@ -34,7 +34,10 @@ This diagram illustrates the **planned authentication flow** showing how users w
 
 ### Mermaid Sequence Diagram (For GitHub Rendering)
 
+> **Note:** If this diagram appears with a dark background, GitHub is rendering it in dark mode. The diagram is optimized for light theme viewing. You can switch your GitHub theme to light mode in Settings → Appearance, or refer to the PNG image above or text-based diagram below.
+
 ```mermaid
+%%{init: {'theme':'default'}}%%
 sequenceDiagram
     actor User
     participant Browser as Next.js Frontend
