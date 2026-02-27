@@ -1,0 +1,76 @@
+# --- System / IDE ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.cursor/
+*.iml
+*.ipr
+*.iws
+
+# --- Secrets & Environment ---
+.env
+.envrc
+.venv
+*.secret
+*.pem
+*.log
+.gemini/settings.json
+
+# --- Tests ---
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
+
+# --- Gemini CLI ---
+
+!.env.example
+
+# --- Node.js / Backend ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- AWS Amplify ---
+.amplify/
+amplify_outputs.json
+amplify_outputs.dart
+amplifyconfiguration.json
+amplifyconfiguration.dart
+
+# --- Flutter / Mobile ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/android/local.properties
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+
+# --- Project Specifics ---
+dist/
+bin/
+obj/
+
+# --- Build Artifacts ---
+**/runner.exe.manifest
+*.spec
+
+# --- Generated Plugin Registrants ---
+**/GeneratedPluginRegistrant.swift
+**/GeneratedPluginRegistrant.h
+**/GeneratedPluginRegistrant.m
+**/generated_plugin_registrant.cc
+**/generated_plugin_registrant.h
+**/generated_plugins.cmake
