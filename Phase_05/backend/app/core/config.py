@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     # Payment Configuration
     mpesa_api_key: Optional[str] = Field(default=None, alias="MPESA_API_KEY")
 
+    # AI Configuration
+    embedding_model: str = Field(default="amazon.titan-embed-text-v2:0", alias="EMBEDDING_MODEL")
+    ai_model: str = Field(default="anthropic.claude-3-haiku-20240307-v1:0", alias="AI_MODEL")
+
     # Pydantic V2 modern configuration
     model_config = SettingsConfigDict(
         env_file=".env",

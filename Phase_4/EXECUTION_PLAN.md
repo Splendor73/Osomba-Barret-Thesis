@@ -586,7 +586,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 **Source:** `Phase_3/artifacts/03_FAQ_Seeds.md`
 
 **Tasks:**
-- [ ] **8.1** Create/update `Phase_05/backend/scripts/seed_faqs.py`:
+- [x] **8.1** Create/update `Phase_05/backend/scripts/seed_faqs.py`:
   - Parse the 20 FAQ entries from the seed list
   - For each FAQ:
     1. Create `ForumCategory` if it doesn't exist (Payments, Listings, Safety, Disputes, Account, Delivery, General)
@@ -595,23 +595,23 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
     4. Set `FAQ.embedding = vector`
   - Print summary: "Seeded X FAQs with embeddings"
 
-- [ ] **8.2** Create sample forum topics with official answers:
+- [x] **8.2** Create sample forum topics with official answers:
   - Create 5-10 sample forum topics across categories
   - Create official answers for some of them
   - Generate embeddings for answered topics
   - This ensures AI search returns both FAQ and Forum results
 
-- [ ] **8.3** Create sample users:
+- [x] **8.3** Create sample users:
   - 1 admin user
   - 2 agent users
   - 3 customer users
   - (Or configure via Cognito groups manually)
 
-- [ ] **8.4** Create sample `AiQueryLog` entries:
+- [x] **8.4** Create sample `AiQueryLog` entries:
   - 20-30 sample queries with varied escalation rates
   - This populates the admin analytics dashboard for demo
 
-- [ ] **8.5** Run the seed script:
+- [x] **8.5** Run the seed script:
   ```bash
   cd Phase_05/backend
   python scripts/seed_faqs.py

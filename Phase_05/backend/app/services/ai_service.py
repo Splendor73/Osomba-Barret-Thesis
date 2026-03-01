@@ -37,6 +37,12 @@ def generate_embedding(text_input: str) -> list[float]:
         if not embedding:
             raise ValueError("No embedding found in the response from Bedrock.")
         
+        # Enforce exact 384-dimension vector for pgvector schema compatibility
+        if len(embedding) > 384:
+            embedding = embedding[:384]
+        elif len(embedding) < 384:
+            embedding = embedding + [0.0] * (384 - len(embedding))
+            
         return embedding
     except Exception as e:
         print(f"Failed to generate embedding via AWS Bedrock: {e}")
