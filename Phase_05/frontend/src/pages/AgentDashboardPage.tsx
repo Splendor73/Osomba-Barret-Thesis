@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   MessageSquare,
   FileText,
   BarChart3,
-  User,
   Search,
   Flag,
   Eye,
@@ -19,104 +18,125 @@ import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { ThreadTableSkeleton } from "../components/SkeletonLoader";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { OrganicBackground } from "../components/OrganicBackground";
+import { useAuth } from "../context/AuthContext";
+import api from "../lib/api";
 
-interface Thread {
-  id: string;
+interface Topic {
+  id: number;
   title: string;
-  category: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  postedTime: string;
-  views: number;
-  urgent: boolean;
+  category_id: number;
+  category_name: string;
+  category_icon: string;
+  author_name: string;
+  author_avatar: string;
+  status: string;
+  is_locked: boolean;
+  view_count: number;
+  created_at: string;
 }
 
-const mockThreads: Thread[] = [
-  {
-    id: "1",
-    title: "My MPESA payment is not showing up",
-    category: "Payments",
-    author: {
-      name: "Jane Doe",
-      avatar: "https://images.unsplash.com/photo-1693035730007-fbc2c14c6814?w=100&h=100&fit=crop",
-    },
-    postedTime: "2 hours ago",
-    views: 42,
-    urgent: true,
-  },
-  {
-    id: "2",
-    title: "Why is my listing not appearing in search?",
-    category: "Listings",
-    author: {
-      name: "John Smith",
-      avatar: "https://images.unsplash.com/photo-1655249481446-25d575f1c054?w=100&h=100&fit=crop",
-    },
-    postedTime: "5 hours ago",
-    views: 67,
-    urgent: false,
-  },
-  {
-    id: "3",
-    title: "Buyer is asking for refund after receiving item",
-    category: "Disputes",
-    author: {
-      name: "Sarah Wilson",
-      avatar: "https://images.unsplash.com/photo-1693035730007-fbc2c14c6814?w=100&h=100&fit=crop",
-    },
-    postedTime: "8 hours ago",
-    views: 28,
-    urgent: true,
-  },
-];
-
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/agent-dashboard", badge: null },
-  { icon: MessageSquare, label: "Unanswered", path: "/agent-dashboard", badge: "12" },
-  { icon: FileText, label: "All Posts", path: "/agent-dashboard", badge: null },
-  { icon: BarChart3, label: "Analytics", path: "/admin/analytics", badge: null },
-  { icon: Users, label: "User Management", path: "/admin/users", badge: null },
-  { icon: Settings, label: "Categories", path: "/admin/categories", badge: null },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/agent-dashboard", badge: null, roles: ["agent", "admin"] },
+  { icon: MessageSquare, label: "Unanswered", path: "/agent-dashboard", badge: "dynamic", roles: ["agent", "admin"] },
+  { icon: BarChart3, label: "Analytics", path: "/admin/analytics", badge: null, roles: ["admin"] },
+  { icon: Users, label: "User Management", path: "/admin/users", badge: null, roles: ["admin"] },
+  { icon: Settings, label: "Categories", path: "/admin/categories", badge: null, roles: ["admin"] },
 ];
 
 export function AgentDashboardPage() {
   const navigate = useNavigate();
-  const [selectedThreads, setSelectedThreads] = useState<string[]>([]);
+  const { user, role, loading: authLoading } = useAuth();
+  
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [selectedThreads, setSelectedThreads] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("Last 7 days");
-  const [sortBy, setSortBy] = useState("Oldest first");
+  const [sortBy, setSortBy] = useState("Newest first");
 
-  const toggleThreadSelection = (id: string) => {
+  useEffect(() => {
+    if (authLoading) return;
+    if (role !== "agent" && role !== "admin") {
+      navigate("/");
+      return;
+    }
+
+    const fetchTopics = async () => {
+      try {
+        const res = await api.get("/support/topics?limit=100");
+        setTopics(res.data);
+      } catch (err: any) {
+        console.error("Agent dashboard error:", err);
+        setError("Failed to load threads.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTopics();
+  }, [authLoading, role, navigate]);
+
+  const toggleThreadSelection = (id: number) => {
     setSelectedThreads((prev) =>
       prev.includes(id) ? prev.filter((tid) => tid !== id) : [...prev, id]
     );
   };
 
-  const filteredThreads = mockThreads.filter((thread) => {
-    if (categoryFilter !== "All" && thread.category !== categoryFilter) return false;
+  const unansweredThreads = topics.filter((t) => t.status !== "Answered");
+
+  const filteredThreads = unansweredThreads.filter((thread) => {
+    if (categoryFilter !== "All" && thread.category_name !== categoryFilter) return false;
     if (searchQuery && !thread.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    // Date filter could be added here if needed
     return true;
   });
 
+  // Sort
+  filteredThreads.sort((a, b) => {
+    if (sortBy === "Newest first") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    if (sortBy === "Oldest first") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    if (sortBy === "Most views") return b.view_count - a.view_count;
+    return 0;
+  });
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString() + ' ' + new Date(dateString).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  };
+
+  const isUrgent = (dateString: string) => {
+    const hours = (new Date().getTime() - new Date(dateString).getTime()) / (1000 * 60 * 60);
+    return hours > 24;
+  };
+
+  if (authLoading || isLoading) {
+    return (
+      <div className="flex h-screen bg-[#F3F4F6] relative">
+        <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col p-6">
+          <h2 className="text-white mb-8">Osomba Agent</h2>
+        </aside>
+        <main className="flex-1 p-8">
+          <ThreadTableSkeleton />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-[#F3F4F6] relative">
-      {/* Organic Background */}
       <OrganicBackground variant="minimal" />
 
       {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col">
-        {/* Logo */}
+      <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col z-10">
         <div className="p-6">
-          <h2 className="text-white">Osomba Agent</h2>
+          <h2 className="text-white">Osomba {role === "admin" ? "Admin" : "Agent"}</h2>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 px-3">
-          {navItems.map((item) => {
+          {navItems.filter(item => item.roles.includes(role || "")).map((item) => {
             const Icon = item.icon;
+            const badgeValue = item.badge === 'dynamic' ? unansweredThreads.length : item.badge;
             return (
               <button
                 key={item.label}
@@ -127,9 +147,9 @@ export function AgentDashboardPage() {
                   <Icon className="w-5 h-5" />
                   <span>{item.label}</span>
                 </div>
-                {item.badge && (
-                  <span className="px-2 py-0.5 bg-[#EF4444] text-white rounded-full text-xs">
-                    {item.badge}
+                {badgeValue && (
+                  <span className="px-2 py-0.5 bg-[#EF4444] text-white rounded-full text-xs font-bold">
+                    {badgeValue}
                   </span>
                 )}
               </button>
@@ -141,27 +161,28 @@ export function AgentDashboardPage() {
         <div className="p-4 border-t border-white/20">
           <div className="flex items-center gap-3">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1655249481446-25d575f1c054?w=100&h=100&fit=crop"
+              src={user?.avatar || "https://images.unsplash.com/photo-1655249481446-25d575f1c054?w=100&h=100&fit=crop"}
               alt="Agent"
               className="w-10 h-10 rounded-full object-cover"
             />
             <div>
-              <p className="text-white text-sm">John Agent</p>
-              <p className="text-orange-100 text-xs">Support Team</p>
+              <p className="text-white text-sm font-medium">{user?.full_name || user?.name || "Support Agent"}</p>
+              <p className="text-orange-100 text-xs uppercase">{role}</p>
             </div>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto z-10">
         <div className="p-8">
+          {error && <ErrorMessage message={error} />}
+
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-gray-900">Unanswered Threads</h1>
               <div className="flex items-center gap-3">
-                {/* Filters */}
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
@@ -196,7 +217,6 @@ export function AgentDashboardPage() {
                   <option>Most views</option>
                 </select>
 
-                {/* Search */}
                 <div className="relative">
                   <input
                     type="text"
@@ -217,8 +237,8 @@ export function AgentDashboardPage() {
                   <p className="text-sm text-gray-600">Open Threads</p>
                   <div className="w-2 h-2 bg-[#F59E0B] rounded-full"></div>
                 </div>
-                <p className="text-2xl text-gray-900" style={{ fontWeight: 700 }}>
-                  12
+                <p className="text-2xl text-gray-900 font-bold">
+                  {unansweredThreads.length}
                 </p>
                 <p className="text-xs text-[#F59E0B] mt-1">Needs attention</p>
               </div>
@@ -228,7 +248,7 @@ export function AgentDashboardPage() {
                   <p className="text-sm text-gray-600">Avg Response Time</p>
                   <div className="w-2 h-2 bg-[#2563EB] rounded-full"></div>
                 </div>
-                <p className="text-2xl text-gray-900" style={{ fontWeight: 700 }}>
+                <p className="text-2xl text-gray-900 font-bold">
                   4.2 hours
                 </p>
                 <p className="text-xs text-[#10B981] mt-1">-1.2 hrs from last week</p>
@@ -239,7 +259,7 @@ export function AgentDashboardPage() {
                   <p className="text-sm text-gray-600">Answered Today</p>
                   <div className="w-2 h-2 bg-[#10B981] rounded-full"></div>
                 </div>
-                <p className="text-2xl text-gray-900" style={{ fontWeight: 700 }}>
+                <p className="text-2xl text-gray-900 font-bold">
                   8
                 </p>
                 <p className="text-xs text-[#10B981] mt-1">Great work!</p>
@@ -247,13 +267,13 @@ export function AgentDashboardPage() {
 
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600">Pending FAQs</p>
+                  <p className="text-sm text-gray-600">Total Posts</p>
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                 </div>
-                <p className="text-2xl text-gray-900" style={{ fontWeight: 700 }}>
-                  3
+                <p className="text-2xl text-gray-900 font-bold">
+                  {topics.length}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Ready to publish</p>
+                <p className="text-xs text-gray-500 mt-1">All time</p>
               </div>
             </div>
           </div>
@@ -261,16 +281,13 @@ export function AgentDashboardPage() {
           {/* Bulk Actions */}
           {selectedThreads.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center justify-between">
-              <p className="text-gray-900">{selectedThreads.length} selected</p>
+              <p className="text-gray-900 font-medium">{selectedThreads.length} selected</p>
               <div className="flex items-center gap-3">
                 <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   Assign
                 </button>
                 <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   Close
-                </button>
-                <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  Export
                 </button>
               </div>
             </div>
@@ -295,66 +312,68 @@ export function AgentDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredThreads.map((thread) => (
-                    <tr
-                      key={thread.id}
-                      className={`border-b border-gray-100 cursor-pointer transition-colors ${
-                        thread.urgent ? "bg-red-50 hover:bg-red-100" : "hover:bg-blue-50"
-                      }`}
-                      onClick={() => navigate(`/thread/${thread.id}`)}
-                    >
-                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={selectedThreads.includes(thread.id)}
-                          onChange={() => toggleThreadSelection(thread.id)}
-                          className="rounded"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        {thread.urgent && <Flag className="w-4 h-4 text-[#EF4444]" />}
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-gray-900 truncate max-w-md">{thread.title}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <CategoryBadge category={thread.category} size="small" />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <ImageWithFallback
-                            src={thread.author.avatar}
-                            alt={thread.author.name}
-                            className="w-6 h-6 rounded-full object-cover"
+                  {filteredThreads.map((thread) => {
+                    const urgent = isUrgent(thread.created_at);
+                    return (
+                      <tr
+                        key={thread.id}
+                        className={`border-b border-gray-100 cursor-pointer transition-colors ${
+                          urgent ? "bg-red-50 hover:bg-red-100" : "hover:bg-blue-50"
+                        }`}
+                        onClick={() => navigate(`/thread/${thread.id}`)}
+                      >
+                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedThreads.includes(thread.id)}
+                            onChange={() => toggleThreadSelection(thread.id)}
+                            className="rounded"
                           />
-                          <span className="text-sm text-gray-700">{thread.author.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600">{thread.postedTime}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-1 text-gray-600">
-                          <Eye className="w-4 h-4" />
-                          <span className="text-sm">{thread.views}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                          <MoreVertical className="w-4 h-4 text-gray-600" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4">
+                          {urgent && <span title="Over 24h old"><Flag className="w-4 h-4 text-[#EF4444]" /></span>}
+                        </td>
+                        <td className="px-6 py-4 flex-1">
+                          <p className="text-gray-900 font-medium truncate max-w-md" title={thread.title}>{thread.title}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <CategoryBadge category={thread.category_name} icon={thread.category_icon || "📝"} size="small" />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <ImageWithFallback
+                              src={thread.author_avatar}
+                              alt={thread.author_name}
+                              className="w-6 h-6 rounded-full object-cover"
+                            />
+                            <span className="text-sm text-gray-700 font-medium">{thread.author_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-gray-600">{formatDate(thread.created_at)}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <Eye className="w-4 h-4" />
+                            <span className="text-sm">{thread.view_count}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                          <button className="p-1 hover:bg-gray-100 rounded transition-colors">
+                            <MoreVertical className="w-4 h-4 text-gray-600" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           ) : (
-            // Empty State
             <div className="bg-white rounded-lg shadow-sm p-12 text-center">
               <CheckCircle className="w-16 h-16 text-[#10B981] mx-auto mb-4" />
               <h2 className="mb-2 text-gray-900">All caught up! No unanswered threads.</h2>
-              <p className="text-gray-600">Great work!</p>
+              <p className="text-gray-600">Great work! Check back later.</p>
             </div>
           )}
         </div>

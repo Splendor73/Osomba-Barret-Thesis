@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Eye, ThumbsUp, ThumbsDown, CheckCircle, ChevronLeft, Bookmark, Lock, MoreVertical, Send, X } from "lucide-react";
+import { Eye, ThumbsUp, ThumbsDown, CheckCircle, ChevronLeft, Bookmark, Lock, MoreVertical, Send, X, User } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { StatusBadge } from "../components/StatusBadge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -12,6 +12,7 @@ import api from "../lib/api";
 
 type Topic = {
   id: number;
+  user_id: number;
   title: string;
   content: string;
   category_id: number;
@@ -19,11 +20,30 @@ type Topic = {
   category_icon: string;
   author_name: string;
   author_avatar: string;
-  status: string;
+  status: "Answered" | "Open" | "Closed" | "FAQ" | "Forum Post";
   is_locked: boolean;
   view_count: number;
   created_at: string;
 };
+
+interface CustomerContext {
+  user_id: number;
+  full_name: string;
+  email: string;
+  country: string;
+  member_since: string;
+  total_orders: number;
+  failed_payments: number;
+  recent_orders: {
+    order_id: number;
+    total_cost: number;
+    shipping_status: string;
+    payment_status: string;
+    items_count: number;
+  }[];
+  past_forum_posts: number;
+  past_resolved_posts: number;
+}
 
 type Post = {
   id: number;
@@ -53,7 +73,8 @@ export function ThreadDetailPage() {
   const [submittingReply, setSubmittingReply] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
-  const [isOfficialAnswer, setIsOfficialAnswer] = useState(false); // Used when agent posts
+  const [isOfficialAnswer, setIsOfficialAnswer] = useState(false);
+  const [context, setContext] = useState<CustomerContext | null>(null);
 
   const fetchThreadData = async () => {
     setIsLoading(true);
@@ -67,6 +88,15 @@ export function ThreadDetailPage() {
       setTopic(topicRes.data);
       setPosts(postsRes.data);
       setRelatedThreads(relatedRes.data.filter((t: Topic) => t.id !== Number(id)).slice(0, 3));
+
+      if (role === 'agent' || role === 'admin') {
+        try {
+          const ctxRes = await api.get(`/admin/users/${topicRes.data.user_id}/support-context`);
+          setContext(ctxRes.data);
+        } catch (e) {
+          console.error("Failed to fetch context", e);
+        }
+      }
     } catch (err: any) {
       console.error("Error fetching thread:", err);
       setError("Failed to load thread details. Please try again.");
@@ -376,6 +406,67 @@ export function ThreadDetailPage() {
           </div>
 
           <aside className="hidden lg:block w-80">
+            {context && (
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h3 className="mb-4 text-gray-900 font-medium border-b pb-2 flex items-center gap-2">
+                  <User className="w-5 h-5 text-gray-500" />
+                  Customer Context
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Customer Info</p>
+                    <p className="text-gray-900 font-medium">{context.full_name}</p>
+                    <p className="text-sm text-gray-600">{context.country} • Member since {context.member_since}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 bg-gray-50 p-3 rounded-lg border border-gray-100 text-center">
+                      <p className="text-2xl font-bold text-gray-900">{context.total_orders}</p>
+                      <p className="text-xs text-gray-500 uppercase font-medium">Orders</p>
+                    </div>
+                    {context.failed_payments > 0 && (
+                      <div className="flex-1 bg-red-50 p-3 rounded-lg border border-red-100 text-center">
+                        <p className="text-2xl font-bold text-red-600">{context.failed_payments}</p>
+                        <p className="text-xs text-red-600 uppercase font-medium">Failed Pmt</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-500 mb-2">Past Interactions</p>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700">Forum Posts</span>
+                      <span className="font-medium bg-gray-100 px-2 rounded-full">{context.past_forum_posts}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm mt-1">
+                      <span className="text-gray-700">Resolved</span>
+                      <span className="font-medium bg-green-100 text-green-700 px-2 rounded-full">{context.past_resolved_posts}</span>
+                    </div>
+                  </div>
+
+                  {context.recent_orders.length > 0 && (
+                    <div className="pt-2 border-t">
+                      <p className="text-sm text-gray-500 mb-2">Recent Orders</p>
+                      {context.recent_orders.map((order: any) => (
+                        <div key={order.order_id} className="text-sm mb-2 pb-2 border-b last:border-0 last:mb-0 last:pb-0">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-medium text-gray-900">#{order.order_id}</span>
+                            <span className="font-medium text-gray-900">${order.total_cost.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between text-xs text-gray-500">
+                            <span>{order.items_count} items • {order.shipping_status}</span>
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${order.payment_status === 'FAILED' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                              {order.payment_status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
               <h3 className="mb-4 text-gray-900 font-medium">Related Questions</h3>
               <div className="space-y-4">
