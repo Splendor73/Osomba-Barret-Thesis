@@ -1,8 +1,9 @@
-import { Menu, X, BarChart3, User, Shield, Plus, LogOut, LogIn, UserPlus } from "lucide-react";
+import { Menu, X, BarChart3, User, Shield, Plus, LogOut, LogIn, UserPlus, Globe } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Vector from "../imports/Vector";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
 interface HeaderProps {
   minimal?: boolean;
@@ -13,6 +14,7 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, role, isAuthenticated, logout } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
 
   return (
     <>
@@ -52,6 +54,14 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
+                className="hidden sm:flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-[#46BB39] hover:bg-green-50 rounded-lg transition-colors font-medium border border-gray-100"
+                title="Toggle Language"
+              >
+                <Globe className="w-4 h-4" />
+                <span className="uppercase text-xs">{language}</span>
+              </button>
               {(role === 'agent' || role === 'admin') && (
                 <button 
                   onClick={() => navigate('/agent-dashboard')}
@@ -120,6 +130,17 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                 </div>
               )}
               
+              <button
+                onClick={() => {
+                  setLanguage(language === 'en' ? 'fr' : 'en');
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-[#46BB39] hover:bg-green-50 rounded-lg transition-all font-medium"
+              >
+                <Globe className="w-4 h-4" />
+                <span>Language: <span className="uppercase">{language}</span></span>
+              </button>
+              
               {(role === 'agent' || role === 'admin') && (
                 <button
                   onClick={() => {
@@ -186,10 +207,10 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
       <button
         onClick={() => navigate('/post')}
         className="fixed bottom-8 right-8 z-40 flex items-center gap-2 px-6 py-4 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] text-white rounded-full shadow-2xl hover:shadow-[#F67C01]/50 transition-all font-semibold hover:scale-110 group"
-        aria-label="Ask Question"
+        aria-label={t('nav.ask_question')}
       >
         <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
-        <span className="hidden sm:inline">Ask Question</span>
+        <span className="hidden sm:inline">{t('nav.ask_question')}</span>
       </button>
     </>
   );

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Header } from "./components/Header";
 import { HomePage } from "./pages/HomePage";
@@ -16,8 +17,9 @@ import { RegisterPage } from "./pages/RegisterPage";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <LanguageProvider>
+      <AuthProvider>
+        <Router>
       <Routes>
         {/* Public Pages with Header */}
         <Route
@@ -78,5 +80,6 @@ export default function App() {
       </Routes>
     </Router>
     </AuthProvider>
+    </LanguageProvider>
   );
 }

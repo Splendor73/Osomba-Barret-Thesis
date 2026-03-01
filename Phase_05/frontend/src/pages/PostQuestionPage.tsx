@@ -4,6 +4,7 @@ import { X, Bold, Italic, List, Link as LinkIcon, CheckCircle } from "lucide-rea
 import { OrganicBackground } from "../components/OrganicBackground";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import api from "../lib/api";
+import { useLanguage } from "../context/LanguageContext";
 
 type Category = {
   id: number;
@@ -21,7 +22,7 @@ export function PostQuestionPage() {
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [language, setLanguage] = useState("english");
+  const { language, t } = useLanguage();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,7 +78,8 @@ export function PostQuestionPage() {
         const res = await api.post('/support/topics', {
           title,
           content: body,
-          category_id: parseInt(category, 10)
+          category_id: parseInt(category, 10),
+          language
         });
         setSubmitted(true);
         setTimeout(() => {
@@ -142,7 +144,7 @@ export function PostQuestionPage() {
           {/* Main Form */}
           <div className="flex-1">
             <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
-              <h1 className="mb-8 text-gray-900">Post a Question</h1>
+              <h1 className="mb-8 text-gray-900">{t('post.title')}</h1>
               {errors.submit && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
                   {errors.submit}
@@ -152,7 +154,7 @@ export function PostQuestionPage() {
               {/* Category */}
               <div className="mb-6">
                 <label className="block mb-2 text-gray-900">
-                  What is your question about? <span className="text-[#EF4444]">*</span>
+                  {t('post.category_label')} <span className="text-[#EF4444]">*</span>
                 </label>
                 <select
                   value={category}
@@ -180,7 +182,7 @@ export function PostQuestionPage() {
               {/* Title */}
               <div className="mb-6">
                 <label className="block mb-2 text-gray-900">
-                  Question Title <span className="text-[#EF4444]">*</span>
+                  {t('post.title_label')} <span className="text-[#EF4444]">*</span>
                 </label>
                 <input
                   type="text"
@@ -189,7 +191,7 @@ export function PostQuestionPage() {
                     setTitle(e.target.value);
                     setErrors({ ...errors, title: "" });
                   }}
-                  placeholder="e.g., Why isn't my MPESA payment showing up?"
+                  placeholder={t('post.title_placeholder')}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] ${
                     errors.title ? "border-[#EF4444]" : "border-gray-300"
                   }`}
@@ -208,7 +210,7 @@ export function PostQuestionPage() {
               {/* Body */}
               <div className="mb-6">
                 <label className="block mb-2 text-gray-900">
-                  Provide details <span className="text-[#EF4444]">*</span>
+                  {t('post.body_label')} <span className="text-[#EF4444]">*</span>
                 </label>
                 
                 {/* Rich Text Toolbar */}
@@ -233,7 +235,7 @@ export function PostQuestionPage() {
                     setBody(e.target.value);
                     setErrors({ ...errors, body: "" });
                   }}
-                  placeholder="Describe your issue in detail. Include any error messages or steps you've tried."
+                  placeholder={t('post.body_placeholder')}
                   className={`w-full px-4 py-3 border border-t-0 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] min-h-[200px] ${
                     errors.body ? "border-[#EF4444]" : "border-gray-300"
                   }`}
@@ -246,35 +248,6 @@ export function PostQuestionPage() {
                     <div></div>
                   )}
                   <p className="text-sm text-gray-500">{body.length} / 5000 characters</p>
-                </div>
-              </div>
-
-              {/* Language */}
-              <div className="mb-8">
-                <label className="block mb-2 text-gray-900">Language</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="language"
-                      value="english"
-                      checked={language === "english"}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      className="w-4 h-4 text-[#2563EB] focus:ring-[#2563EB]"
-                    />
-                    <span className="text-gray-700">English</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="language"
-                      value="french"
-                      checked={language === "french"}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      className="w-4 h-4 text-[#2563EB] focus:ring-[#2563EB]"
-                    />
-                    <span className="text-gray-700">French</span>
-                  </label>
                 </div>
               </div>
 
@@ -301,7 +274,7 @@ export function PostQuestionPage() {
                   >
                     {isSubmitting ? (
                       <>
-                        <LoadingSpinner size="sm" color="white" />
+                        <LoadingSpinner size="small" />
                         Posting...
                       </>
                     ) : (

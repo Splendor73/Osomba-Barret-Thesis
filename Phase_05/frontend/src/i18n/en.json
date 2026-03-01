@@ -1,0 +1,66 @@
+{
+  "nav": {
+    "home": "Home",
+    "faq": "FAQ",
+    "ai_help": "AI Help Board",
+    "ask_question": "Ask a Question",
+    "agent_dashboard": "Agent Dashboard",
+    "analytics": "Analytics",
+    "user_management": "Users",
+    "category_management": "Categories",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "How can we help you today?",
+    "subtitle": "Search our knowledge base or ask the community.",
+    "search_placeholder": "Search documentation or community questions...",
+    "faqs_title": "Frequently Asked Questions",
+    "forum_title": "Recent Community Discussions",
+    "no_topics": "No topics found."
+  },
+  "buttons": {
+    "get_help": "Get Help",
+    "post_question": "Post Question",
+    "submit_answer": "Submit Answer",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "status": {
+    "open": "Open",
+    "answered": "Answered",
+    "locked": "Locked",
+    "loading": "Loading...",
+    "error": "Error"
+  },
+  "thread": {
+    "replies": "Replies",
+    "submit_reply": "Submit Reply",
+    "login_to_reply": "Log in to reply",
+    "customer_context": "Customer Context",
+    "total_orders": "Total Orders",
+    "failed_payments": "Failed Payments",
+    "member_since": "Member since",
+    "convert_faq": "Convert to FAQ",
+    "lock_thread": "Lock Thread"
+  },
+  "ai": {
+    "title": "AI Help Assistant",
+    "prompt": "Describe your issue, and our AI will suggest the best solutions.",
+    "placeholder": "E.g., How do I pay with MPESA?",
+    "confidence": "Confidence",
+    "no_results": "No good matches found. Please try rephrasing or post to the forum.",
+    "still_need_help": "Still Need Help?"
+  },
+  "post": {
+    "title": "Post a New Question",
+    "title_label": "Question Title",
+    "title_placeholder": "Summarize your issue (min 10 characters)",
+    "category_label": "Category",
+    "body_label": "Details",
+    "body_placeholder": "Provide as much detail as possible to help us answer your question."
+  }
+}

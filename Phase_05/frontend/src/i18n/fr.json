@@ -1,0 +1,66 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "faq": "FAQ",
+    "ai_help": "Assistant IA",
+    "ask_question": "Poser une question",
+    "agent_dashboard": "Tableau de Bord Agent",
+    "analytics": "Analytique",
+    "user_management": "Utilisateurs",
+    "category_management": "Catégories",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "logout": "Déconnexion"
+  },
+  "home": {
+    "title": "Comment pouvons-nous vous aider aujourd'hui?",
+    "subtitle": "Recherchez dans notre base de connaissances ou demandez à la communauté.",
+    "search_placeholder": "Rechercher dans la documentation ou les questions de la communauté...",
+    "faqs_title": "Questions Fréquemment Posées",
+    "forum_title": "Discussions Récentes de la Communauté",
+    "no_topics": "Aucun sujet trouvé."
+  },
+  "buttons": {
+    "get_help": "Obtenir de l'aide",
+    "post_question": "Poser une question",
+    "submit_answer": "Soumettre la réponse",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer"
+  },
+  "status": {
+    "open": "Ouvert",
+    "answered": "Répondu",
+    "locked": "Verrouillé",
+    "loading": "Chargement...",
+    "error": "Erreur"
+  },
+  "thread": {
+    "replies": "Réponses",
+    "submit_reply": "Soumettre une réponse",
+    "login_to_reply": "Connectez-vous pour répondre",
+    "customer_context": "Contexte Client",
+    "total_orders": "Commandes Totales",
+    "failed_payments": "Paiements Échoués",
+    "member_since": "Membre depuis",
+    "convert_faq": "Convertir en FAQ",
+    "lock_thread": "Verrouiller le fil"
+  },
+  "ai": {
+    "title": "Assistant d'Aide IA",
+    "prompt": "Décrivez votre problème, et notre IA suggérera les meilleures solutions.",
+    "placeholder": "Ex., Comment puis-je payer avec MPESA?",
+    "confidence": "Confiance",
+    "no_results": "Aucune bonne correspondance trouvée. Veuillez essayer de reformuler ou publier sur le forum.",
+    "still_need_help": "Besoin d'aide supplémentaire?"
+  },
+  "post": {
+    "title": "Poser une Nouvelle Question",
+    "title_label": "Titre de la Question",
+    "title_placeholder": "Résumez votre problème (min 10 caractères)",
+    "category_label": "Catégorie",
+    "body_label": "Détails",
+    "body_placeholder": "Fournissez autant de détails que possible pour nous aider à répondre à votre question."
+  }
+}

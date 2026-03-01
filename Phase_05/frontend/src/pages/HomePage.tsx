@@ -7,6 +7,7 @@ import { QuestionCardSkeleton } from "../components/SkeletonLoader";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { OrganicBackground } from "../components/OrganicBackground";
+import { useLanguage } from "../context/LanguageContext";
 
 const categoryPills = [
   { name: "Payments", emoji: "💳" },
@@ -38,6 +39,7 @@ export function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const fetchContent = async () => {
     try {
@@ -130,10 +132,10 @@ export function HomePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="mb-6">
             <h1 className="mb-2 bg-gradient-to-r from-[#F67C01] to-[#46BB39] bg-clip-text text-transparent">
-              How can we help you today?
+              {t('home.title')}
             </h1>
             <p className="text-gray-600 text-lg">
-              Search FAQs, forum posts, and get AI-powered answers
+              {t('home.subtitle')}
             </p>
           </div>
 
@@ -142,7 +144,7 @@ export function HomePage() {
             <div className="relative max-w-2xl mx-auto">
               <input
                 type="text"
-                placeholder="Ask anything... Our AI will search everything for you"
+                placeholder={t('home.search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-6 py-4 pl-12 pr-24 border-2 border-gray-200 bg-white rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#F67C01] focus:border-transparent text-base hover:shadow-md transition-all"
@@ -167,7 +169,7 @@ export function HomePage() {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-gray-900">
-                {selectedCategory ? `${selectedCategory} Questions` : "Recent Questions"}
+                {selectedCategory ? `${selectedCategory} Questions` : t('home.forum_title')}
               </h2>
               {selectedCategory && (
                 <button
@@ -181,13 +183,13 @@ export function HomePage() {
 
             {isLoading ? (
               <div className="flex justify-center p-12">
-                <LoadingSpinner size="lg" color="primary" />
+                <LoadingSpinner size="large" />
               </div>
             ) : error ? (
-              <ErrorMessage message={error} retry={fetchContent} />
+              <ErrorMessage message={error} onRetry={fetchContent} />
             ) : filteredQuestions.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-                <p className="text-gray-500">No questions found.</p>
+                <p className="text-gray-500">{t('home.no_topics')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

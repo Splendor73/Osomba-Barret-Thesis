@@ -7,6 +7,7 @@ import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { OrganicBackground } from "../components/OrganicBackground";
 import api from "../lib/api";
+import { useLanguage } from "../context/LanguageContext";
 
 interface SuggestionCard {
   id: string;
@@ -33,6 +34,7 @@ export function AIHelpPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { language, t } = useLanguage();
 
   useEffect(() => {
     const queryParam = searchParams.get("q");
@@ -51,7 +53,7 @@ export function AIHelpPage() {
     setError(null);
 
     try {
-      const response = await api.post('/support/ai/suggest', { query: q, language: "en" });
+      const response = await api.post('/support/ai/suggest', { query: q, language });
       setResults(response.data.suggestions || []);
       setSessionId(response.data.session_id || null);
     } catch (err) {
@@ -108,11 +110,11 @@ export function AIHelpPage() {
               <Sparkles className="w-7 h-7 text-white" />
             </div>
             <h1 className="bg-gradient-to-r from-[#F67C01] to-[#46BB39] bg-clip-text text-transparent">
-              AI Help Board
+              {t('ai.title')}
             </h1>
           </div>
           <p className="text-gray-600 text-lg">
-            Get instant answers powered by artificial intelligence
+            {t('ai.prompt')}
           </p>
         </div>
 
@@ -127,7 +129,7 @@ export function AIHelpPage() {
                   handleSearch();
                 }
               }}
-              placeholder="Ask me anything about using Osomba..."
+              placeholder={t('ai.placeholder')}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01] focus:border-transparent resize-none"
               rows={3}
             />
@@ -262,7 +264,7 @@ export function AIHelpPage() {
                 </div>
 
                 <div className="mt-8 text-center">
-                  <p className="text-gray-600 mb-4">Still need help?</p>
+                  <p className="text-gray-600 mb-4">{t('ai.still_need_help')}</p>
                   <button
                     onClick={handleEscalate}
                     className="px-6 py-3 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors shadow-sm"
@@ -274,7 +276,7 @@ export function AIHelpPage() {
             ) : (
               <div className="bg-white rounded-lg shadow-sm p-12 text-center">
                 <div className="text-6xl mb-4">🔍</div>
-                <h2 className="mb-3 text-gray-900">We couldn't find a great match for your question</h2>
+                <h2 className="mb-3 text-gray-900">{t('ai.no_results')}</h2>
                 <p className="text-gray-600 mb-6">Our support agents can help you directly</p>
                 <button
                   onClick={handleEscalate}

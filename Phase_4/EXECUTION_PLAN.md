@@ -626,25 +626,17 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 ---
 
 ### STEP 9: Language Scaffolding (EN/FR)
-**Goal:** App is built in English with French infrastructure ready for future use.
-
-**Prospectus Ref:** Deliverable 1f
+**Goal:** Prepare the React app to support English and French (DRC's official language).
 
 **Tasks:**
-- [ ] **9.1** Create `Phase_05/frontend/src/i18n/` directory with:
-  - `en.json` — all UI strings in English
-  - `fr.json` — same keys, placeholder French translations (can be "TODO" for non-critical strings)
-- [ ] **9.2** Create `src/context/LanguageContext.tsx`:
-  - State: `language` ('en' | 'fr')
-  - Function: `setLanguage()`
-  - Loads the correct JSON file
-- [ ] **9.3** Add language toggle to Header (EN | FR switch)
-- [ ] **9.4** Replace hardcoded English strings in key pages with `t('key')` calls:
-  - Header, Footer, navigation labels
-  - Button labels ("Get Help", "Post Question", "Submit Answer")
-  - Status labels ("Open", "Answered", "Locked")
-  - Error messages
-- [ ] **9.5** Add `language` field to forum topic creation (tracks which language the post is in)
+- [x] **9.1** Setup `Phase_05/frontend/src/i18n/`:
+  - `en.json` (English translations for App UI)
+  - `fr.json` (French translations - mock them for now or use basic French)
+- [x] **9.2** Setup `src/context/LanguageContext.tsx`:
+  - Provide `t(key)` function and `language` state
+- [x] **9.3** Add a language toggle to the `Header.tsx` (e.g., a simple EN/FR button).
+- [x] **9.4** Wrap hardcoded English strings in key pages (Home, Submitting) with the `t('')` function.
+- [x] **9.5** Pass the user's selected language to relevant backend API calls where language matters (e.g., the AI Help prompt should know they speak French).
 - [ ] **9.6** Pass `language` param in AI suggest request (already in schema)
 
 **Acceptance Criteria:**
