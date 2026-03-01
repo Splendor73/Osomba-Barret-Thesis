@@ -671,7 +671,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 **Goal:** Verify every user flow works end-to-end.
 
 **Tasks:**
-- [ ] **11.1** Customer Flow Test:
+- [x] **11.1** Customer Flow Test:
   1. Visit homepage → see forum topics and FAQs
   2. Use search bar → see combined results
   3. Click "Post Question" → fill form with category → submit
@@ -679,14 +679,14 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
   5. Receive notification when agent answers (or check thread)
   6. Read official answer → thread shows "Answered"
 
-- [ ] **11.2** AI Flow Test:
+- [x] **11.2** AI Flow Test:
   1. Go to AI Help Board
   2. Type "How do I pay with MPESA?" → see relevant suggestions with confidence scores
   3. Click a suggestion → navigate to full content
   4. Type an obscure question with no match → see "No matches" message
   5. Click "Still Need Help?" → redirected to post form with query pre-filled
 
-- [ ] **11.3** Agent Flow Test:
+- [x] **11.3** Agent Flow Test:
   1. Log in as agent → see Agent Dashboard
   2. View unanswered threads → filter by category
   3. Open a thread → write and submit official answer
@@ -694,7 +694,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
   5. Click "Convert to FAQ" → verify new FAQ appears in FAQ list
   6. Lock the thread → verify reply form is hidden
 
-- [ ] **11.4** Admin Flow Test:
+- [x] **11.4** Admin Flow Test:
   1. Log in as admin → see Analytics Dashboard
   2. Verify KPI cards show real numbers
   3. Verify charts render with data
