@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+:root {
+  /* Osomba Theme Colors */
+  --primary-orange: #F67C01;
+  --primary-green: #46BB39;
+  --dark-green: #4E8149;
+  --teal-green: #21825C;
+  --deep-green: #32742C;
+  --success-green: #0F9400;
+  --white: #FFFFFF;
+  --text-gray: #6B7280;
+  --background-light: #FFFFFF;
+  --background-gray: #F3F4F6;
+  
+  /* Legacy support for existing components */
+  --primary-blue: #F67C01;
+  --warning-yellow: #F59E0B;
+  --danger-red: #EF4444;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #F67C01 0%, #46BB39 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+h1 {
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+h2 {
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+h3 {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+h4 {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+p, body {
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Organic shape decorations */
+.organic-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.organic-bg::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -10%;
+  width: 60%;
+  height: 150%;
+  background: radial-gradient(ellipse, rgba(70, 187, 57, 0.3) 0%, transparent 70%);
+  border-radius: 50% 30% 40% 60%;
+  transform: rotate(-15deg);
+  z-index: 0;
+}
+
+.organic-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  right: -10%;
+  width: 50%;
+  height: 100%;
+  background: radial-gradient(ellipse, rgba(33, 130, 92, 0.2) 0%, transparent 70%);
+  border-radius: 40% 60% 30% 50%;
+  transform: rotate(25deg);
+  z-index: 0;
+}
