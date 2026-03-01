@@ -1,4 +1,4 @@
-import { Menu, X, BarChart3, User, Shield, Plus, LogOut, LogIn, UserPlus, Globe } from "lucide-react";
+import { Menu, X, BarChart3, User, Shield, Plus, LogOut, LogIn, UserPlus, Globe, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Vector from "../imports/Vector";
@@ -93,6 +93,13 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                     </span>
                   </div>
                   <button 
+                    onClick={() => navigate('/settings')}
+                    className="flex items-center justify-center w-11 h-11 bg-white border border-gray-200 text-gray-600 rounded-full hover:shadow-md hover:bg-gray-50 transition-all hover:scale-105"
+                    title="Settings"
+                  >
+                    <Settings className="w-5 h-5 text-gray-600" />
+                  </button>
+                  <button 
                     onClick={async () => {
                       await logout();
                       navigate('/');
@@ -168,17 +175,29 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
               
               <div className="pt-2 mt-2 border-t border-gray-100">
                 {isAuthenticated ? (
-                  <button
-                    onClick={async () => {
-                      await logout();
-                      navigate('/');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all font-medium"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sign Out</span>
-                  </button>
+                  <>
+                    <button
+                      onClick={() => {
+                        navigate('/settings');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition-all font-medium"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Settings</span>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await logout();
+                        navigate('/');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all font-medium"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </>
                 ) : (
                   <>
                     <button

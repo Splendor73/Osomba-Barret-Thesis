@@ -14,6 +14,7 @@ import { UserManagementPage } from "./pages/UserManagementPage";
 import { CategoryManagementPage } from "./pages/CategoryManagementPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 export default function App() {
   return (
@@ -72,6 +73,16 @@ export default function App() {
           }
         />
         
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Header showSearch={false} />
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Agent/Admin Pages without Header */}
         <Route path="/agent-dashboard" element={<ProtectedRoute requiredRole="agent"><AgentDashboardPage /></ProtectedRoute>} />
         <Route path="/admin/analytics" element={<ProtectedRoute requiredRole="admin"><AnalyticsDashboardPage /></ProtectedRoute>} />

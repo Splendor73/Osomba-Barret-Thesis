@@ -651,14 +651,14 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 **Goal:** App looks professional and works on mobile screens.
 
 **Tasks:**
-- [ ] **10.1** Ensure all pages are responsive (test at 375px, 768px, 1024px, 1440px)
-- [ ] **10.2** Mobile navigation: hamburger menu for sidebar on small screens
-- [ ] **10.3** Loading states: skeleton loaders on all data-fetching pages
-- [ ] **10.4** Error states: show user-friendly error messages when API calls fail
-- [ ] **10.5** Empty states: show helpful messages when no data (e.g., "No questions yet. Be the first to ask!")
-- [ ] **10.6** Toast notifications for success actions (post created, answer submitted, FAQ converted)
-- [ ] **10.7** Consistent use of Somba brand colors from Tailwind config
-- [ ] **10.8** Ensure all interactive elements have hover/focus states for accessibility
+- [x] **10.1** Ensure all pages are responsive (test at 375px, 768px, 1024px, 1440px)
+- [x] **10.2** Mobile navigation: hamburger menu for sidebar on small screens
+- [x] **10.3** Loading states: skeleton loaders on all data-fetching pages
+- [x] **10.4** Error states: show user-friendly error messages when API calls fail
+- [x] **10.5** Empty states: show helpful messages when no data (e.g., "No questions yet. Be the first to ask!")
+- [x] **10.6** Toast notifications for success actions (post created, answer submitted, FAQ converted)
+- [x] **10.7** Consistent use of Somba brand colors from Tailwind config
+- [x] **10.8** Ensure all interactive elements have hover/focus states for accessibility
 
 **Acceptance Criteria:**
 - App looks good on both mobile and desktop
