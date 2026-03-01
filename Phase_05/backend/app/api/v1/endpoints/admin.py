@@ -1,8 +1,9 @@
 from fastapi import APIRouter
-from app.api.dependencies import SessionDep, AdminUserDep
+from app.api.dependencies import SessionDep, AdminUserDep, AgentUserDep
 from sqlalchemy import func
 from app.models.support import ForumTopic, ForumPost, FAQ, AiQueryLog, ForumCategory
 from app.models.user import User, UserRole
+from app.models.order import Order, Payment, PaymentStatus
 from pydantic import BaseModel
 
 class UserRoleUpdateRequest(BaseModel):
@@ -94,3 +95,50 @@ def update_user_role(user_id: int, request: UserRoleUpdateRequest, db: SessionDe
     db.commit()
     return {"status": "success", "new_role": user.role.value if hasattr(user.role, 'value') else str(user.role)}
 
+@router.get("/users/{user_id}/support-context")
+def get_user_support_context(user_id: int, db: SessionDep, agent: AgentUserDep):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    total_orders = db.query(func.count(Order.order_id)).filter(Order.buyer_id == user_id).scalar() or 0
+    orders = db.query(Order).filter(Order.buyer_id == user_id).order_by(Order.order_id.desc()).limit(5).all()
+    
+    order_ids = [o.order_id for o in orders]
+    failed_payments = 0
+    if order_ids:
+        failed_payments = db.query(func.count(Payment.payment_id)).filter(
+            Payment.order_id.in_(order_ids),
+            Payment.payment_status == PaymentStatus.FAILED
+        ).scalar() or 0
+        
+    past_forum_posts = db.query(func.count(ForumTopic.id)).filter(ForumTopic.user_id == user_id).scalar() or 0
+    past_resolved_posts = db.query(func.count(ForumTopic.id)).filter(
+        ForumTopic.user_id == user_id, 
+        ForumTopic.status == "Answered"
+    ).scalar() or 0
+    
+    recent_orders = []
+    for o in orders:
+        pmt = db.query(Payment).filter(Payment.order_id == o.order_id).order_by(Payment.payment_id.desc()).first()
+        recent_orders.append({
+            "order_id": o.order_id,
+            "total_cost": float(o.total_cost),
+            "shipping_status": o.shipping_status,
+            "payment_status": pmt.payment_status.value if pmt and hasattr(pmt, 'payment_status') else "UNKNOWN",
+            "items_count": len(o.items) if hasattr(o, 'items') else 0
+        })
+
+    return {
+        "user_id": user.user_id,
+        "full_name": user.full_name or "Unknown User",
+        "email": user.email,
+        "country": user.country or "Unknown",
+        "member_since": str(user.created_at.date()) if user.created_at else "Unknown",
+        "total_orders": total_orders,
+        "failed_payments": failed_payments,
+        "recent_orders": recent_orders,
+        "past_forum_posts": past_forum_posts,
+        "past_resolved_posts": past_resolved_posts
+    }

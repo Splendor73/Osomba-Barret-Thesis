@@ -1,48 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Sparkles, Star, Search as SearchIcon, ArrowLeft, AlertCircle } from "lucide-react";
+import { Sparkles, Star, ArrowLeft, AlertCircle } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { StatusBadge } from "../components/StatusBadge";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { OrganicBackground } from "../components/OrganicBackground";
-import Vector from "../imports/Vector";
+import api from "../lib/api";
 
 interface SuggestionCard {
   id: string;
   title: string;
   snippet: string;
   category: string;
-  source: "FAQ" | "Forum Post";
+  source: "FAQ" | "Forum Post" | string;
   confidence: number;
 }
-
-const mockSuggestions: SuggestionCard[] = [
-  {
-    id: "1",
-    title: "How long do MPESA payments take to reflect?",
-    snippet: "MPESA payments typically reflect within 5-10 minutes. If your payment is delayed, wait up to 30 minutes during peak hours...",
-    category: "Payments",
-    source: "FAQ",
-    confidence: 95,
-  },
-  {
-    id: "2",
-    title: "My MPESA payment is not showing up",
-    snippet: "Check your MPESA confirmation message first. If the payment was successful but not reflecting, it may take up to 30 minutes...",
-    category: "Payments",
-    source: "Forum Post",
-    confidence: 88,
-  },
-  {
-    id: "3",
-    title: "What to do if MPESA payment fails",
-    snippet: "If your MPESA payment fails, your money will be automatically refunded to your MPESA account within 24 hours...",
-    category: "Payments",
-    source: "FAQ",
-    confidence: 72,
-  },
-];
 
 const exampleQuestions = [
   "How do I pay with MPESA?",
@@ -57,6 +30,7 @@ export function AIHelpPage() {
   const [query, setQuery] = useState(searchParams.get("q") || "");
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<SuggestionCard[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,22 +42,44 @@ export function AIHelpPage() {
     }
   }, [searchParams]);
 
-  const handleSearch = (searchQuery?: string) => {
+  const handleSearch = async (searchQuery?: string) => {
     const q = searchQuery || query;
     if (q.trim().length < 3) return;
 
     setSearching(true);
     setHasSearched(true);
+    setError(null);
 
-    // Simulate API call
-    setTimeout(() => {
-      if (q.toLowerCase().includes("mpesa") || q.toLowerCase().includes("payment")) {
-        setResults(mockSuggestions);
-      } else {
-        setResults([]);
-      }
+    try {
+      const response = await api.post('/support/ai/suggest', { query: q, language: "en" });
+      setResults(response.data.suggestions || []);
+      setSessionId(response.data.session_id || null);
+    } catch (err) {
+      console.error("Failed to fetch AI suggestions:", err);
+      setError("Failed to fetch suggestions. Please try again or post to the forum.");
+      setResults([]);
+    } finally {
       setSearching(false);
-    }, 800);
+    }
+  };
+
+  const handleEscalate = async () => {
+    if (sessionId) {
+      try {
+        await api.post('/support/ai/escalate', { session_id: sessionId });
+      } catch (err) {
+        console.error("Failed to log escalation:", err);
+      }
+    }
+    navigate(`/post?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleResultClick = (result: SuggestionCard) => {
+    if (result.source === "FAQ") {
+      navigate(`/faq/${result.id}`);
+    } else {
+      navigate(`/thread/${result.id}`);
+    }
   };
 
   const getStars = (confidence: number) => {
@@ -95,11 +91,9 @@ export function AIHelpPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Organic decorative shapes background */}
       <OrganicBackground variant="alternate" />
 
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 z-10">
-        {/* Back Button */}
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-gray-700 hover:text-[#F67C01] mb-8 transition-colors font-medium"
@@ -108,7 +102,6 @@ export function AIHelpPage() {
           Back to Forum
         </button>
 
-        {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-[#F67C01] to-[#46BB39] rounded-xl flex items-center justify-center shadow-md">
@@ -123,7 +116,6 @@ export function AIHelpPage() {
           </p>
         </div>
 
-        {/* Search Input */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
           <div className="relative mb-4">
             <textarea
@@ -161,6 +153,8 @@ export function AIHelpPage() {
             </div>
           )}
 
+          {error && <ErrorMessage message={error} />}
+
           <button
             onClick={() => handleSearch()}
             disabled={query.trim().length < 3 || searching}
@@ -174,10 +168,8 @@ export function AIHelpPage() {
           </button>
         </div>
 
-        {/* Results */}
         {hasSearched && (
           <div>
-            {/* Query Display */}
             <div className="bg-white rounded-xl p-4 mb-6 border border-gray-100 shadow-sm">
               <p className="text-gray-700">
                 <span className="text-gray-500 font-medium">Your question:</span> <span className="font-medium">{query}</span>
@@ -205,11 +197,11 @@ export function AIHelpPage() {
                         className={`bg-white rounded-xl shadow-sm p-6 border transition-all ${
                           lowConfidence
                             ? "border-gray-200 opacity-75"
-                            : "border-gray-100 hover:shadow-md hover:border-[#F67C01]/30"
+                            : "border-gray-100 hover:shadow-md hover:border-[#F67C01]/30 cursor-pointer"
                         }`}
+                        onClick={() => handleResultClick(result)}
                       >
                         <div className="flex items-start gap-4">
-                          {/* Confidence Score */}
                           <div className="flex-shrink-0">
                             <div className="flex items-center gap-1 mb-1">
                               {Array.from({ length: stars.total }).map((_, idx) => (
@@ -228,10 +220,17 @@ export function AIHelpPage() {
                             </p>
                           </div>
 
-                          {/* Content */}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <StatusBadge status={result.source} size="small" />
+                              {/* Source Badge with proper text coloring based on source */}
+                              <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
+                                result.source === 'FAQ' 
+                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                  : 'bg-purple-50 text-purple-700 border-purple-200'
+                              }`}>
+                                {result.source}
+                              </span>
+                              
                               {lowConfidence && (
                                 <span className="flex items-center gap-1 text-xs text-gray-500">
                                   <AlertCircle className="w-3 h-3" />
@@ -246,7 +245,10 @@ export function AIHelpPage() {
                             <div className="flex items-center justify-between gap-3">
                               <CategoryBadge category={result.category} size="small" />
                               <button
-                                onClick={() => navigate(`/faq/${result.id}`)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleResultClick(result);
+                                }}
                                 className="text-sm text-[#F67C01] hover:text-[#d66901] font-medium transition-colors"
                               >
                                 View full answer →
@@ -259,33 +261,30 @@ export function AIHelpPage() {
                   })}
                 </div>
 
-                {/* Still Need Help */}
                 <div className="mt-8 text-center">
                   <p className="text-gray-600 mb-4">Still need help?</p>
                   <button
-                    onClick={() => navigate("/post")}
-                    className="px-6 py-3 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors"
+                    onClick={handleEscalate}
+                    className="px-6 py-3 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors shadow-sm"
                   >
                     Post to Forum
                   </button>
                 </div>
               </div>
             ) : (
-              // No Results
               <div className="bg-white rounded-lg shadow-sm p-12 text-center">
                 <div className="text-6xl mb-4">🔍</div>
                 <h2 className="mb-3 text-gray-900">We couldn't find a great match for your question</h2>
                 <p className="text-gray-600 mb-6">Our support agents can help you directly</p>
                 <button
-                  onClick={() => navigate(`/post?q=${encodeURIComponent(query)}`)}
-                  className="px-6 py-3 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors"
+                  onClick={handleEscalate}
+                  className="px-6 py-3 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors shadow-sm"
                 >
                   Post to Forum
                 </button>
               </div>
             )}
 
-            {/* New Search */}
             {hasSearched && (
               <div className="mt-6 text-center">
                 <button
@@ -293,8 +292,9 @@ export function AIHelpPage() {
                     setQuery("");
                     setResults([]);
                     setHasSearched(false);
+                    setSessionId(null);
                   }}
-                  className="text-gray-600 hover:text-[#2563EB] transition-colors"
+                  className="text-gray-700 font-medium hover:text-[#F67C01] transition-colors"
                 >
                   New Search
                 </button>
