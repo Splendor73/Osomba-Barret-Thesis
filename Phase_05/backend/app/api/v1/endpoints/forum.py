@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 from app.api.dependencies import SessionDep, CurrentUserDep, AdminUserDep, AgentUserDep
-from app.schemas.support import ForumTopicCreate, ForumTopicResponse, UIForumTopicResponse, ForumPostCreate, ForumPostResponse, OfficialAnswerRequest, TopicLockRequest, ForumTopicUpdate, ForumPostUpdate, ConvertToFAQRequest, FAQCreate, FAQResponse
+from app.schemas.support import ForumTopicCreate, ForumTopicResponse, UIForumTopicResponse, ForumPostCreate, ForumPostResponse, UIForumPostResponse, OfficialAnswerRequest, TopicLockRequest, ForumTopicUpdate, ForumPostUpdate, ConvertToFAQRequest, FAQCreate, FAQResponse
 from app.services import forum_service
 from app.crud import faq as faq_crud
 from app.services.ai_service import generate_embedding
@@ -25,11 +25,11 @@ def get_topic(topic_id: int, db: SessionDep):
 def create_topic(topic: ForumTopicCreate, db: SessionDep, current_user: CurrentUserDep):
     return forum_service.create_topic(db, topic, current_user.user_id)
 
-@router.get("/topics/{topic_id}/posts", response_model=List[ForumPostResponse])
+@router.get("/topics/{topic_id}/posts", response_model=List[UIForumPostResponse])
 def get_posts(topic_id: int, db: SessionDep, skip: int = 0, limit: int = 100):
     return forum_service.get_posts_by_topic(db, topic_id, skip, limit)
 
-@router.post("/topics/{topic_id}/posts", response_model=ForumPostResponse)
+@router.post("/topics/{topic_id}/posts", response_model=UIForumPostResponse)
 def create_post(topic_id: int, post: ForumPostCreate, db: SessionDep, current_user: CurrentUserDep):
     post.topic_id = topic_id
     return forum_service.create_post(db, post, current_user.user_id)

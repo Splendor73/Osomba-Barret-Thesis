@@ -17,87 +17,107 @@ const categoryPills = [
   { name: "Delivery", emoji: "🚚" },
 ];
 
-const mockQuestions = [
-  {
-    id: "1",
-    status: "FAQ" as const,
-    title: "How do I pay with MPESA?",
-    preview: "MPESA payments are quick and secure. Simply select MPESA at checkout, enter your phone number, and approve the payment on your phone.",
-    category: "Payments",
-    categoryIcon: "💳",
-    date: "2 days ago",
-    views: 245,
-  },
-  {
-    id: "2",
-    status: "Forum Post" as const,
-    title: "My MPESA payment is not showing up",
-    preview: "I made a payment via MPESA but it's not reflecting in my account. Transaction ID: MPX12345. Please help!",
-    category: "Payments",
-    categoryIcon: "💳",
-    date: "2 hours ago",
-    views: 42,
-  },
-  {
-    id: "3",
-    status: "FAQ" as const,
-    title: "How to report a suspicious listing?",
-    preview: "If you encounter a listing that seems fraudulent or violates our policies, you can report it by clicking the flag icon on the listing page.",
-    category: "Safety",
-    categoryIcon: "🛡️",
-    date: "5 days ago",
-    views: 189,
-  },
-  {
-    id: "4",
-    status: "Forum Post" as const,
-    title: "Why is my listing not appearing in search?",
-    preview: "I posted a new listing yesterday but it's not showing up when I search for it. Is there a review process?",
-    category: "Listings",
-    categoryIcon: "📝",
-    date: "1 day ago",
-    views: 67,
-  },
-  {
-    id: "5",
-    status: "FAQ" as const,
-    title: "How long does delivery usually take?",
-    preview: "Delivery times vary by location. Within the same city, expect 1-2 days. For inter-city deliveries, allow 3-5 business days.",
-    category: "Delivery",
-    categoryIcon: "🚚",
-    date: "1 week ago",
-    views: 312,
-  },
-  {
-    id: "6",
-    status: "Forum Post" as const,
-    title: "Buyer is asking for refund after receiving item",
-    preview: "I sold an item and the buyer received it in perfect condition but now wants a refund. What should I do?",
-    category: "Disputes",
-    categoryIcon: "⚠️",
-    date: "3 hours ago",
-    views: 28,
-  },
-];
+import api from "../lib/api";
+
+type Question = {
+  id: string;
+  status: "FAQ" | "Forum Post";
+  title: string;
+  preview: string;
+  category: string;
+  categoryIcon?: string;
+  date: string;
+  views: number;
+  url: string;
+};
 
 export function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>();
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Search is now handled locally by filtering questions
+  const fetchContent = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const [topicsRes, faqsRes] = await Promise.all([
+        api.get('/forum/topics'),
+        api.get('/faq/')
+      ]);
+
+      const fetchedTopics = topicsRes.data.map((t: any) => ({
+        id: t.id.toString(),
+        status: "Forum Post",
+        title: t.title,
+        preview: typeof t.content === 'string' ? t.content.substring(0, 150) + '...' : '',
+        category: t.category?.name_en || 'General',
+        categoryIcon: t.category?.icon_url || '📝',
+        date: new Date(t.created_at).toLocaleDateString(),
+        views: t.view_count || 0,
+        url: `/thread/${t.id}`
+      }));
+
+      const fetchedFaqs = faqsRes.data.map((f: any) => ({
+        id: f.id.toString(),
+        status: "FAQ",
+        title: f.question,
+        preview: typeof f.answer === 'string' ? f.answer.substring(0, 150) + '...' : '',
+        category: f.category?.name_en || 'General',
+        categoryIcon: f.category?.icon_url || '💡',
+        date: new Date(f.updated_at || f.created_at).toLocaleDateString(),
+        views: (f.helpful_count || 0) + (f.not_helpful_count || 0),
+        url: `/faq/${f.id}`
+      }));
+
+      setQuestions([...fetchedFaqs, ...fetchedTopics]);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load questions.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const filteredQuestions = mockQuestions.filter((q) => {
-    const matchesCategory = selectedCategory ? q.category === selectedCategory : true;
-    const matchesSearch = searchQuery.trim()
-      ? q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        q.preview.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        q.category.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-    return matchesCategory && matchesSearch;
+  useEffect(() => {
+    fetchContent();
+  }, []);
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) {
+      fetchContent();
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      const res = await api.get(`/search/?query=${encodeURIComponent(searchQuery)}`);
+      const searchResults = res.data.results.map((r: any) => ({
+        id: r.id.toString(),
+        status: r.type === 'faq' ? 'FAQ' : 'Forum Post',
+        title: r.title,
+        preview: r.content || '',
+        category: r.category || 'General',
+        categoryIcon: '🔍',
+        date: r.date || '',
+        views: r.views || 0,
+        url: r.type === 'faq' ? `/faq/${r.id}` : `/thread/${r.id}`
+      }));
+      setQuestions(searchResults);
+    } catch (err) {
+      console.error(err);
+      setError('Search failed.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredQuestions = questions.filter((q) => {
+    return selectedCategory ? q.category === selectedCategory : true;
   });
 
   return (
@@ -159,19 +179,25 @@ export function HomePage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredQuestions.map((question) => (
-                <QuestionCard
-                  key={question.id}
-                  {...question}
-                  onClick={() => navigate(`/thread/${question.id}`)}
-                />
-              ))}
-            </div>
-
-            {filteredQuestions.length === 0 && (
+            {isLoading ? (
+              <div className="flex justify-center p-12">
+                <LoadingSpinner size="lg" color="primary" />
+              </div>
+            ) : error ? (
+              <ErrorMessage message={error} retry={fetchContent} />
+            ) : filteredQuestions.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-                <p className="text-gray-500">No questions found in this category.</p>
+                <p className="text-gray-500">No questions found.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredQuestions.map((question) => (
+                  <QuestionCard
+                    key={`${question.status}-${question.id}`}
+                    {...question}
+                    onClick={() => navigate(question.url)}
+                  />
+                ))}
               </div>
             )}
           </div>

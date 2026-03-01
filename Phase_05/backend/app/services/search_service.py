@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.support import ForumTopic, ForumPost, FAQ
-from app.services.ai_service import get_embedding
+from app.services.ai_service import generate_embedding
 from app.core.config import settings
 import time
 
@@ -12,7 +12,7 @@ def search_support_content(db: Session, query: str, user_id: int = None):
     start_time = time.time()
     
     # 1. Generate text embedding for the search query
-    query_vector = get_embedding(query)
+    query_vector = generate_embedding(query)
     
     threshold = settings.ai_similarity_threshold
 

@@ -11,6 +11,13 @@ router = APIRouter()
 def get_faqs(db: SessionDep, skip: int = 0, limit: int = 100):
     return faq_service.get_faqs(db, skip, limit)
 
+@router.get("/{faq_id}", response_model=FAQResponse)
+def get_faq(faq_id: int, db: SessionDep):
+    faq = db.query(faq_crud.FAQ).filter(faq_crud.FAQ.id == faq_id).first()
+    if not faq:
+        raise HTTPException(status_code=404, detail="FAQ not found")
+    return faq
+
 @router.post("/", response_model=FAQResponse)
 def create_faq(faq: FAQCreate, db: SessionDep, agent: AgentUserDep):
     # For Phase 4, we use AWS Bedrock to generate embeddings

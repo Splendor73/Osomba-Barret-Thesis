@@ -92,6 +92,11 @@ class ForumPostResponse(ForumPostBase):
     class Config:
         from_attributes = True
 
+class UIForumPostResponse(ForumPostResponse):
+    author_name: str = ""
+    author_avatar: str = ""
+    author_role: str = "user"
+
 class OfficialAnswerRequest(BaseModel):
     content: Optional[str] = None
     post_id: Optional[int] = None

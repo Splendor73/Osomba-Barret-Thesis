@@ -1,27 +1,51 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { X, Bold, Italic, List, Link as LinkIcon, CheckCircle } from "lucide-react";
-import Vector from "../imports/Vector";
 import { OrganicBackground } from "../components/OrganicBackground";
+import { LoadingSpinner } from "../components/LoadingSpinner";
+import api from "../lib/api";
 
-const categories = [
-  { value: "Payments", label: "💳 Payments" },
-  { value: "Listings", label: "📝 Listings" },
-  { value: "Safety", label: "🛡️ Safety" },
-  { value: "Disputes", label: "⚠️ Disputes" },
-  { value: "Account", label: "👤 Account" },
-  { value: "Delivery", label: "🚚 Delivery" },
-];
+type Category = {
+  id: number;
+  name_en: string;
+  icon_url: string;
+};
 
 export function PostQuestionPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const location = useLocation();
+  const [step] = useState(1);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingCats, setIsLoadingCats] = useState(true);
+  
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [language, setLanguage] = useState("english");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Check for prefill query parameter
+    const searchParams = new URLSearchParams(location.search);
+    const q = searchParams.get("q");
+    if (q) {
+      setTitle(decodeURIComponent(q));
+    }
+
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get('/support/categories');
+        setCategories(res.data);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+      } finally {
+        setIsLoadingCats(false);
+      }
+    };
+    fetchCategories();
+  }, [location.search]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -46,16 +70,28 @@ export function PostQuestionPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      setSubmitted(true);
-      setTimeout(() => {
-        navigate("/");
-      }, 2000);
+      setIsSubmitting(true);
+      try {
+        const res = await api.post('/support/topics', {
+          title,
+          content: body,
+          category_id: parseInt(category, 10)
+        });
+        setSubmitted(true);
+        setTimeout(() => {
+          navigate(`/thread/${res.data.id}`);
+        }, 2000);
+      } catch (err: any) {
+        setErrors({ submit: err.response?.data?.detail || "Failed to post question. Please try again." });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const isFormValid = category && title.length >= 10 && title.length <= 200 && body.length >= 20 && body.length <= 5000;
+  const isFormValid = category && title.length >= 10 && title.length <= 200 && body.length >= 20 && body.length <= 5000 && !isSubmitting;
 
   if (submitted) {
     return (
@@ -107,6 +143,11 @@ export function PostQuestionPage() {
           <div className="flex-1">
             <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
               <h1 className="mb-8 text-gray-900">Post a Question</h1>
+              {errors.submit && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                  {errors.submit}
+                </div>
+              )}
 
               {/* Category */}
               <div className="mb-6">
@@ -119,14 +160,15 @@ export function PostQuestionPage() {
                     setCategory(e.target.value);
                     setErrors({ ...errors, category: "" });
                   }}
+                  disabled={isLoadingCats}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] ${
                     errors.category ? "border-[#EF4444]" : "border-gray-300"
                   }`}
                 >
-                  <option value="">Select a category...</option>
+                  <option value="">{isLoadingCats ? 'Loading categories...' : 'Select a category...'}</option>
                   {categories.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icon_url} {cat.name_en}
                     </option>
                   ))}
                 </select>
@@ -251,13 +293,20 @@ export function PostQuestionPage() {
                   <button
                     onClick={handleSubmit}
                     disabled={!isFormValid}
-                    className={`px-6 py-2 rounded-lg transition-colors ${
+                    className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
                       isFormValid
                         ? "bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                   >
-                    Post Question
+                    {isSubmitting ? (
+                      <>
+                        <LoadingSpinner size="sm" color="white" />
+                        Posting...
+                      </>
+                    ) : (
+                      "Post Question"
+                    )}
                   </button>
                 </div>
               </div>
