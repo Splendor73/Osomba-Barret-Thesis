@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -7,7 +7,6 @@ import {
   BarChart3,
   Download,
   TrendingUp,
-  TrendingDown,
   CheckCircle,
   Plus,
   Users,
@@ -16,42 +15,13 @@ import {
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { OrganicBackground } from "../components/OrganicBackground";
-
-const postsOverTimeData = [
-  { date: "Nov 1", total: 28, answered: 24 },
-  { date: "Nov 8", total: 35, answered: 30 },
-  { date: "Nov 15", total: 42, answered: 38 },
-  { date: "Nov 22", total: 38, answered: 35 },
-  { date: "Nov 29", total: 45, answered: 40 },
-];
-
-const categoryDistributionData = [
-  { category: "Payments", count: 89 },
-  { category: "Listings", count: 67 },
-  { category: "Safety", count: 54 },
-  { category: "Disputes", count: 48 },
-  { category: "Account", count: 45 },
-  { category: "Delivery", count: 39 },
-];
-
-const deflectionFunnelData = [
-  { stage: "AI Queries", count: 1523, percentage: 100 },
-  { stage: "Found Answer", count: 1102, percentage: 72 },
-  { stage: "Escalated to Forum", count: 421, percentage: 28 },
-];
-
-const topQuestions = [
-  { question: "How do I pay with MPESA?", category: "Payments", timesAsked: 156, avgSimilarity: 94 },
-  { question: "Why is my listing not showing?", category: "Listings", timesAsked: 142, avgSimilarity: 88 },
-  { question: "How long does delivery take?", category: "Delivery", timesAsked: 128, avgSimilarity: 91 },
-  { question: "How to report a scam?", category: "Safety", timesAsked: 98, avgSimilarity: 85 },
-  { question: "Can I get a refund?", category: "Disputes", timesAsked: 87, avgSimilarity: 79 },
-];
+import { ErrorMessage } from "../components/ErrorMessage";
+import { useAuth } from "../context/AuthContext";
+import api from "../lib/api";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/agent-dashboard", badge: null },
-  { icon: MessageSquare, label: "Unanswered", path: "/agent-dashboard", badge: "12" },
-  { icon: FileText, label: "All Posts", path: "/agent-dashboard", badge: null },
+  { icon: MessageSquare, label: "Unanswered", path: "/agent-dashboard", badge: null }, // Dynamic badge handled in Agent page
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics", badge: null },
   { icon: Users, label: "User Management", path: "/admin/users", badge: null },
   { icon: Settings, label: "Categories", path: "/admin/categories", badge: null },
@@ -59,22 +29,85 @@ const navItems = [
 
 export function AnalyticsDashboardPage() {
   const navigate = useNavigate();
-  const [dateRange, setDateRange] = useState("Last 30 days");
-  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
+  const { user, role, loading: authLoading } = useAuth();
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [overview, setOverview] = useState<any>(null);
+  const [postsOverTime, setPostsOverTime] = useState<any[]>([]);
+  const [categoryDist, setCategoryDist] = useState<any[]>([]);
+  const [topQs, setTopQs] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (role !== "admin") {
+      navigate("/"); // Only admins can view analytics
+      return;
+    }
+
+    const fetchAnalytics = async () => {
+      try {
+        const [overviewRes, postsRes, categoryRes, queriesRes] = await Promise.all([
+          api.get("/admin/analytics/overview"),
+          api.get("/admin/analytics/posts-over-time"),
+          api.get("/admin/analytics/category-distribution"),
+          api.get("/admin/analytics/top-queries")
+        ]);
+
+        setOverview(overviewRes.data);
+        setPostsOverTime(postsRes.data);
+        setCategoryDist(categoryRes.data);
+        setTopQs(queriesRes.data);
+      } catch (err: any) {
+        console.error("Failed to load analytics:", err);
+        setError("Failed to load analytics dashboard.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchAnalytics();
+  }, [authLoading, role, navigate]);
+
+  const calculateFunnel = () => {
+    if (!overview) return [];
+    const total = overview.total_ai_queries || 0;
+    const rate = overview.deflection_rate || 0;
+    const foundAnswer = Math.round(total * (rate / 100));
+    const escalated = total - foundAnswer;
+
+    return [
+      { stage: "AI Queries", count: total, percentage: 100 },
+      { stage: "Found Answer (Deflected)", count: foundAnswer, percentage: rate },
+      { stage: "Escalated to Forum", count: escalated, percentage: 100 - rate }
+    ];
+  };
+
+  if (authLoading || isLoading) {
+    return (
+      <div className="flex h-screen bg-[#F3F4F6] relative">
+        <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col p-6">
+          <h2 className="text-white">Osomba Admin</h2>
+        </aside>
+        <main className="flex-1 p-8 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        </main>
+      </div>
+    );
+  }
+
+  const funnelData = calculateFunnel();
 
   return (
     <div className="flex h-screen bg-[#F3F4F6] relative">
-      {/* Organic Background */}
       <OrganicBackground variant="minimal" />
 
       {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col">
-        {/* Logo */}
+      <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col z-10">
         <div className="p-6">
           <h2 className="text-white">Osomba Admin</h2>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 px-3">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -91,11 +124,6 @@ export function AnalyticsDashboardPage() {
                   <Icon className="w-5 h-5" />
                   <span>{item.label}</span>
                 </div>
-                {item.badge && (
-                  <span className="px-2 py-0.5 bg-[#EF4444] text-white rounded-full text-xs">
-                    {item.badge}
-                  </span>
-                )}
               </button>
             );
           })}
@@ -105,163 +133,146 @@ export function AnalyticsDashboardPage() {
         <div className="p-4 border-t border-white/20">
           <div className="flex items-center gap-3">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1655249481446-25d575f1c054?w=100&h=100&fit=crop"
+              src={user?.avatar || "https://images.unsplash.com/photo-1655249481446-25d575f1c054?w=100&h=100&fit=crop"}
               alt="Admin"
               className="w-10 h-10 rounded-full object-cover"
             />
             <div>
-              <p className="text-white text-sm">Admin User</p>
-              <p className="text-blue-200 text-xs">Administrator</p>
+              <p className="text-white text-sm font-medium">{user?.full_name || "Admin User"}</p>
+              <p className="text-orange-100 text-xs uppercase">{role}</p>
             </div>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto z-10">
         <div className="p-8">
+          {error && <ErrorMessage message={error} />}
+
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-gray-900">Analytics Dashboard</h1>
             <div className="flex items-center gap-3">
-              <select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-              >
-                <option>Last 7 days</option>
-                <option>Last 30 days</option>
-                <option>Last 90 days</option>
-                <option>Custom range</option>
-              </select>
-              <button className="flex items-center gap-2 px-4 py-2 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors shadow-sm">
                 <Download className="w-4 h-4" />
                 Export Report
               </button>
             </div>
           </div>
 
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            {/* Total Forum Posts */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-gray-600">Total Forum Posts</p>
-                <MessageSquare className="w-5 h-5 text-gray-400" />
+          {overview && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              {/* Total Forum Posts */}
+              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-gray-600 font-medium">Total Forum Posts</p>
+                  <MessageSquare className="w-5 h-5 text-gray-400" />
+                </div>
+                <p className="text-3xl text-gray-900 mb-2 font-bold">
+                  {overview.total_posts}
+                </p>
+                <div className="flex items-center gap-1 text-sm text-[#10B981]">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>All time</span>
+                </div>
+                <div className="mt-4 h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#10B981] rounded-full" style={{ width: "100%" }}></div>
+                </div>
               </div>
-              <p className="text-3xl text-gray-900 mb-2" style={{ fontWeight: 700 }}>
-                342
-              </p>
-              <div className="flex items-center gap-1 text-sm text-[#10B981]">
-                <TrendingUp className="w-4 h-4" />
-                <span>+12% from last period</span>
-              </div>
-              <div className="mt-4 h-1 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#10B981] rounded-full" style={{ width: "60%" }}></div>
-              </div>
-            </div>
 
-            {/* Deflection Rate */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-gray-600">Deflection Rate</p>
-                <CheckCircle className="w-5 h-5 text-gray-400" />
+              {/* Deflection Rate */}
+              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-gray-600 font-medium">Deflection Rate</p>
+                  <CheckCircle className="w-5 h-5 text-[#10B981]" />
+                </div>
+                <p className="text-3xl text-gray-900 mb-2 font-bold">
+                  {overview.deflection_rate}%
+                </p>
+                <div className="flex items-center gap-1 text-sm text-[#10B981]">
+                  <span>AI answers successfully accepted</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-3 font-medium">Queries resolved without new post</p>
               </div>
-              <p className="text-3xl text-gray-900 mb-2" style={{ fontWeight: 700 }}>
-                72%
-              </p>
-              <div className="flex items-center gap-1 text-sm text-[#10B981]">
-                <TrendingUp className="w-4 h-4" />
-                <span>+5% from last period</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-3">Queries resolved without new post</p>
-            </div>
 
-            {/* Avg Response Time */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-gray-600">Avg Response Time</p>
-                <BarChart3 className="w-5 h-5 text-gray-400" />
+              {/* Avg Response Time */}
+              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-gray-600 font-medium">Avg Response Time</p>
+                  <BarChart3 className="w-5 h-5 text-[#2563EB]" />
+                </div>
+                <p className="text-3xl text-gray-900 mb-2 font-bold">
+                  {overview.avg_response_time}
+                </p>
+                <p className="text-xs text-gray-500 mt-3 font-medium">Target: {"<"} 6 hours</p>
               </div>
-              <p className="text-3xl text-gray-900 mb-2" style={{ fontWeight: 700 }}>
-                4.2 hours
-              </p>
-              <div className="flex items-center gap-1 text-sm text-[#10B981]">
-                <TrendingDown className="w-4 h-4" />
-                <span>-1.2 hrs from last period</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-3">Target: {"<"}6 hours</p>
-            </div>
 
-            {/* FAQ Views */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-gray-600">FAQ Views</p>
-                <FileText className="w-5 h-5 text-gray-400" />
-              </div>
-              <p className="text-3xl text-gray-900 mb-2" style={{ fontWeight: 700 }}>
-                8,945
-              </p>
-              <div className="flex items-center gap-1 text-sm text-[#10B981]">
-                <TrendingUp className="w-4 h-4" />
-                <span>+24% from last period</span>
-              </div>
-              <div className="mt-4 h-1 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#2563EB] rounded-full" style={{ width: "75%" }}></div>
+              {/* FAQ Setup */}
+              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-gray-600 font-medium">Active FAQs</p>
+                  <FileText className="w-5 h-5 text-[#F59E0B]" />
+                </div>
+                <p className="text-3xl text-gray-900 mb-2 font-bold">
+                  {overview.total_faqs}
+                </p>
+                <div className="mt-4 h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#F59E0B] rounded-full" style={{ width: "100%" }}></div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Posts Over Time */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="mb-6 text-gray-900">Posts Over Time</h3>
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+              <h3 className="mb-6 text-gray-900 font-medium">Posts Over Time</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={postsOverTimeData}>
+                <LineChart data={postsOverTime}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis dataKey="date" stroke="#6B7280" />
                   <YAxis stroke="#6B7280" />
-                  <Tooltip />
+                  <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                   <Legend />
-                  <Line type="monotone" dataKey="total" stroke="#2563EB" strokeWidth={2} name="Total Posts" />
-                  <Line type="monotone" dataKey="answered" stroke="#10B981" strokeWidth={2} name="Answered Posts" />
+                  <Line type="monotone" dataKey="count" stroke="#F67C01" strokeWidth={3} name="Total Posts" dot={{ r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
             {/* Category Distribution */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="mb-6 text-gray-900">Category Distribution</h3>
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+              <h3 className="mb-6 text-gray-900 font-medium">Category Distribution</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={categoryDistributionData}>
+                <BarChart data={categoryDist}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="category" stroke="#6B7280" angle={-45} textAnchor="end" height={80} />
+                  <XAxis dataKey="category" stroke="#6B7280" angle={-45} textAnchor="end" height={80} interval={0} tick={{ fontSize: 12 }} />
                   <YAxis stroke="#6B7280" />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#2563EB" radius={[8, 8, 0, 0]} />
+                  <Tooltip cursor={{ fill: '#F3F4F6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  <Bar dataKey="count" fill="#46BB39" radius={[6, 6, 0, 0]} name="Thread Count" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* AI Deflection Funnel */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <h3 className="mb-6 text-gray-900">AI Deflection Funnel</h3>
-            <div className="max-w-2xl mx-auto">
-              {deflectionFunnelData.map((stage, idx) => {
+          <div className="bg-white rounded-lg shadow-sm p-8 mb-8 border border-gray-100">
+            <h3 className="mb-6 text-gray-900 font-medium text-center">AI Support Deflection Funnel</h3>
+            <div className="max-w-3xl mx-auto space-y-6">
+              {funnelData.map((stage, idx) => {
                 const colors = ["#2563EB", "#10B981", "#EF4444"];
                 return (
-                  <div key={idx} className="mb-4">
+                  <div key={idx}>
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-gray-700">{stage.stage}</p>
-                      <p className="text-gray-900" style={{ fontWeight: 700 }}>
-                        {stage.count.toLocaleString()} ({stage.percentage}%)
+                      <p className="text-gray-700 font-medium">{stage.stage}</p>
+                      <p className="text-gray-900 font-bold">
+                        {stage.count.toLocaleString()} <span className="text-gray-500 font-medium ml-1">({Math.round(stage.percentage)}%)</span>
                       </p>
                     </div>
-                    <div className="h-12 rounded-lg overflow-hidden" style={{ width: `${stage.percentage}%`, backgroundColor: colors[idx], opacity: 0.8 + idx * 0.1 }}>
-                      <div className="h-full flex items-center justify-center text-white" style={{ fontWeight: 700 }}>
-                        {stage.percentage}%
+                    <div className="h-10 rounded-lg overflow-hidden bg-gray-100">
+                      <div className="h-full flex items-center px-4 text-white font-medium transition-all duration-1000" style={{ width: `${Math.max(stage.percentage, 2)}%`, backgroundColor: colors[idx] }}>
+                        {Math.round(stage.percentage)}%
                       </div>
                     </div>
                   </div>
@@ -271,48 +282,42 @@ export function AnalyticsDashboardPage() {
           </div>
 
           {/* Top Questions Table */}
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-gray-900">Top Questions from AI Logs</h3>
+              <h3 className="text-gray-900 font-medium">Top AI Supported Queries</h3>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Question</th>
-                    <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Category</th>
-                    <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Times Asked</th>
-                    <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Avg Similarity</th>
-                    <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topQuestions.map((q, idx) => (
-                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <p className="text-gray-900 max-w-md">{q.question}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
-                          {q.category}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-gray-900">{q.timesAsked}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-gray-700">{q.avgSimilarity}%</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button className="flex items-center gap-1 text-sm text-[#2563EB] hover:underline">
-                          <Plus className="w-4 h-4" />
-                          Create FAQ
-                        </button>
-                      </td>
+              {topQs.length > 0 ? (
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Query Text</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Queries Logged</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {topQs.map((q, idx) => (
+                      <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <p className="text-gray-900 font-medium">{q.query}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-gray-900 font-semibold">{q.count}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <button className="flex items-center gap-1 text-sm text-[#2563EB] font-medium hover:text-[#1d4ed8] transition-colors bg-blue-50 px-3 py-1.5 rounded hover:bg-blue-100">
+                            <Plus className="w-4 h-4" />
+                            Draft FAQ
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="p-8 text-center text-gray-500">No AI queries logged yet.</div>
+              )}
             </div>
           </div>
         </div>

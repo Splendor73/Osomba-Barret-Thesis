@@ -548,29 +548,29 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 **Tasks:**
 
 #### 7.1 — AnalyticsDashboardPage.tsx
-- [ ] Protected route: only `admin` role
-- [ ] On mount: `GET /admin/analytics/overview` → display KPI cards:
+- [x] Protected route: only `admin` role
+- [x] On mount: `GET /admin/analytics/overview` → display KPI cards:
   - Total Posts
   - Deflection Rate (%)
   - Total FAQs
   - Total AI Queries
-- [ ] Chart 1 — "Posts Over Time": `GET /admin/analytics/posts-over-time` → line chart (recharts)
-- [ ] Chart 2 — "Category Distribution": `GET /admin/analytics/category-distribution` → pie/bar chart
-- [ ] Chart 3 — "Top AI Queries": `GET /admin/analytics/top-queries` → table of top 10
-- [ ] Optional: "Export CSV" button → download data as CSV
+- [x] Chart 1 — "Posts Over Time": `GET /admin/analytics/posts-over-time` → line chart (recharts)
+- [x] Chart 2 — "Category Distribution": `GET /admin/analytics/category-distribution` → pie/bar chart
+- [x] Chart 3 — "Top AI Queries": `GET /admin/analytics/top-queries` → table of top 10
+- [x] Optional: "Export CSV" button → download data as CSV
 
 #### 7.2 — Category Management Section
-- [ ] Display all categories: `GET /categories/`
-- [ ] "Add Category" form: name, description, icon → `POST /categories/`
-- [ ] "Edit Category" inline edit → `PUT /categories/{id}`
-- [ ] "Archive Category" (set `is_active=false`) → `PUT /categories/{id}` with `{ is_active: false }`
+- [x] Display all categories: `GET /categories/`
+- [x] "Add Category" form: name, description, icon → `POST /categories/`
+- [x] "Edit Category" inline edit → `PUT /categories/{id}`
+- [x] "Archive Category" (set `is_active=false`) → `PUT /categories/{id}` with `{ is_active: false }`
 
 #### 7.3 — User Management Section
-- [ ] Search users by email/name: `GET /admin/users?search=...`
-- [ ] Display user list: email, name, current role
-- [ ] Role dropdown per user: Customer → Agent → Admin
-- [ ] On role change: `PUT /admin/users/{id}/role` with `{ role: "agent" }`
-- [ ] Confirmation dialog before role change
+- [x] Search users by email/name: `GET /admin/users?search=...`
+- [x] Display user list: email, name, current role
+- [x] Role dropdown per user: Customer → Agent → Admin
+- [x] On role change: `PUT /admin/users/{id}/role` with `{ role: "agent" }`
+- [x] Confirmation dialog before role change
 
 **Acceptance Criteria:**
 - Admin dashboard shows real KPI metrics from the database
