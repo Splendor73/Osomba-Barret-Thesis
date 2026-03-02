@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Mail, Smartphone } from "lucide-react";
+import { ArrowLeft, Bell } from "lucide-react";
 import api from "../lib/api";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
@@ -17,9 +17,6 @@ export function SettingsPage() {
 
   const [userId, setUserId] = useState<number | null>(null);
   
-  // Settings State
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
 
   useEffect(() => {
@@ -106,49 +103,6 @@ export function SettingsPage() {
                 </label>
               </div>
 
-              <hr className="border-gray-100" />
-
-              {/* Email Notifications Toggle (UI Mock) */}
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-base font-medium text-gray-900 flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-gray-400" />
-                    Email Notifications
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">Get an email when someone replies to your question.</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={emailNotifications}
-                    onChange={(e) => setEmailNotifications(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#F67C01]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#46BB39]"></div>
-                </label>
-              </div>
-
-              <hr className="border-gray-100" />
-
-              {/* Push Notifications Toggle (UI Mock) */}
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-base font-medium text-gray-900 flex items-center gap-2">
-                    <Smartphone className="w-4 h-4 text-gray-400" />
-                    In-App Push
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">Receive in-app popups and mobile notifications.</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={pushNotifications}
-                    onChange={(e) => setPushNotifications(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#F67C01]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#46BB39]"></div>
-                </label>
-              </div>
             </div>
 
             <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-end gap-4">
