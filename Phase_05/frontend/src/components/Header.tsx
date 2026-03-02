@@ -40,15 +40,12 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                   <Menu className="w-6 h-6 text-gray-700" />
                 )}
               </button>
-              <a href="/" className="flex items-center gap-3 group">
-                <div className="w-11 h-11 bg-gradient-to-br from-[#F67C01] to-[#46BB39] rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
-                </div>
-                <span className="text-gray-900 font-bold text-xl hidden sm:block">
-                  Osomba <span className="text-[#F67C01]">Forum</span>
-                </span>
+              <a href="/" className="flex items-center gap-3 group ml-17">
+                <img
+                  src="/osomba-logo.png"
+                  alt="Osomba"
+                  className="h-30 w-auto"
+                />
               </a>
             </div>
 
@@ -224,7 +221,7 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
 
       {/* Floating Action Button */}
       <button
-        onClick={() => navigate('/post')}
+        onClick={() => isAuthenticated ? navigate('/post') : navigate('/login')}
         className="fixed bottom-8 right-8 z-40 flex items-center gap-2 px-6 py-4 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] text-white rounded-full shadow-2xl hover:shadow-[#F67C01]/50 transition-all font-semibold hover:scale-110 group"
         aria-label={t('nav.ask_question')}
       >
