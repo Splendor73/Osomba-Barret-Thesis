@@ -8,14 +8,15 @@ import { useLanguage } from "../context/LanguageContext";
 
 type Category = {
   id: number;
-  name_en: string;
-  icon_url: string;
+  name: string;
+  name_en?: string;
+  icon: string;
+  icon_url?: string;
 };
 
 export function PostQuestionPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [step] = useState(1);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoadingCats, setIsLoadingCats] = useState(true);
   
@@ -123,19 +124,12 @@ export function PostQuestionPage() {
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-white/90 mb-1">Step {step} of 2: Describe your question</p>
-              <div className="flex gap-2">
-                <div className={`h-1 w-24 rounded ${step >= 1 ? "bg-[#46BB39]" : "bg-white/30"}`}></div>
-                <div className={`h-1 w-24 rounded ${step >= 2 ? "bg-[#46BB39]" : "bg-white/30"}`}></div>
-              </div>
-            </div>
+          <div className="flex items-center justify-end mb-4">
             <button
               onClick={() => navigate("/")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
-              <X className="w-6 h-6 text-gray-600" />
+              <X className="w-6 h-6 text-white" />
             </button>
           </div>
         </div>
@@ -170,7 +164,7 @@ export function PostQuestionPage() {
                   <option value="">{isLoadingCats ? 'Loading categories...' : 'Select a category...'}</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.icon_url} {cat.name_en}
+                      {cat.icon_url || cat.icon || "📝"} {cat.name_en || cat.name}
                     </option>
                   ))}
                 </select>
