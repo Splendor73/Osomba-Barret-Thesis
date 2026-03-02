@@ -6,7 +6,6 @@ import {
   BarChart3,
   Search,
   Flag,
-  Eye,
   CheckCircle,
   Users,
   Settings,
@@ -220,7 +219,6 @@ export function AgentDashboardPage() {
                 >
                   <option>Oldest first</option>
                   <option>Newest first</option>
-                  <option>Most views</option>
                 </select>
 
                 <div className="relative">
@@ -284,7 +282,6 @@ export function AgentDashboardPage() {
                     <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Category</th>
                     <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Author</th>
                     <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Posted</th>
-                    <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Views</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -319,12 +316,6 @@ export function AgentDashboardPage() {
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-sm text-gray-600">{formatDate(thread.created_at)}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <Eye className="w-4 h-4" />
-                            <span className="text-sm">{thread.view_count}</span>
-                          </div>
                         </td>
                       </tr>
                     );
