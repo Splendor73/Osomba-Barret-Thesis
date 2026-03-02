@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import get_db, SessionDep, OptionalUserDep
 from app.services.ai_service import generate_embedding, search_similar_content
 from app.models.support import FAQ, ForumTopic, ForumPost, ForumCategory, AiQueryLog
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -34,7 +35,7 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
     vector = generate_embedding(request.query)
     
     # 2. Search pgvector database
-    similarity_threshold = 0.5 # Example threshold
+    similarity_threshold = settings.ai_similarity_threshold
     raw_results = search_similar_content(db, vector, limit=5, similarity_threshold=similarity_threshold)
     
     suggestions = []

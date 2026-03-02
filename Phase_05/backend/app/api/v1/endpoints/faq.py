@@ -7,16 +7,25 @@ from app.crud import faq as faq_crud
 
 router = APIRouter()
 
+def _enrich_faq(faq) -> dict:
+    """Add category_name and category_icon from relationship."""
+    data = FAQResponse.model_validate(faq).model_dump()
+    if faq.category:
+        data["category_name"] = faq.category.name
+        data["category_icon"] = faq.category.icon
+    return data
+
 @router.get("/", response_model=List[FAQResponse])
 def get_faqs(db: SessionDep, skip: int = 0, limit: int = 100):
-    return faq_service.get_faqs(db, skip, limit)
+    faqs = faq_service.get_faqs(db, skip, limit)
+    return [_enrich_faq(f) for f in faqs]
 
 @router.get("/{faq_id}", response_model=FAQResponse)
 def get_faq(faq_id: int, db: SessionDep):
     faq = db.query(faq_crud.FAQ).filter(faq_crud.FAQ.id == faq_id).first()
     if not faq:
         raise HTTPException(status_code=404, detail="FAQ not found")
-    return faq
+    return _enrich_faq(faq)
 
 @router.post("/", response_model=FAQResponse)
 def create_faq(faq: FAQCreate, db: SessionDep, agent: AgentUserDep):

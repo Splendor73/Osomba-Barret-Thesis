@@ -46,7 +46,7 @@ export function Sidebar({ activeCategory, onCategoryClick }: SidebarProps) {
                   : "text-gray-700 hover:bg-orange-50 hover:text-[#F67C01]"
               }`}
             >
-              <span className="text-lg">{cat.icon_url || "📝"}</span>
+              <span className="text-lg">{cat.icon || cat.icon_url || "📝"}</span>
               <span className="font-medium text-sm">{name}</span>
             </button>
           );

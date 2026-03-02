@@ -46,8 +46,8 @@ export function HomePage() {
         status: "Forum Post",
         title: t.title,
         preview: typeof t.content === 'string' ? t.content.substring(0, 150) + '...' : '',
-        category: t.category?.name_en || 'General',
-        categoryIcon: t.category?.icon_url || '📝',
+        category: t.category_name || t.category?.name_en || 'General',
+        categoryIcon: t.category_icon || t.category?.icon_url || '📝',
         date: new Date(t.created_at).toLocaleDateString(),
         views: t.view_count || 0,
         url: `/thread/${t.id}`
@@ -58,8 +58,8 @@ export function HomePage() {
         status: "FAQ",
         title: f.question,
         preview: typeof f.answer === 'string' ? f.answer.substring(0, 150) + '...' : '',
-        category: f.category?.name_en || 'General',
-        categoryIcon: f.category?.icon_url || '💡',
+        category: f.category_name || f.category?.name_en || 'General',
+        categoryIcon: f.category_icon || f.category?.icon_url || '💡',
         date: new Date(f.updated_at || f.created_at).toLocaleDateString(),
         views: (f.helpful_count || 0) + (f.not_helpful_count || 0),
         url: `/faq/${f.id}`

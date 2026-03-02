@@ -1,7 +1,17 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Optional, List
 from datetime import datetime
 from app.models.support import SupportTicketStatus, SupportTicketPriority
+
+_ICON_EMOJI_MAP = {
+    "paid": "💳",
+    "inventory": "🏷️",
+    "health_and_safety": "🛡️",
+    "gavel": "⚖️",
+    "account_circle": "👤",
+    "local_shipping": "🚚",
+    "info": "ℹ️",
+}
 
 # --- API Shared Schemas ---
 class PaginatedResponse(BaseModel):
@@ -29,6 +39,13 @@ class ForumCategoryUpdate(BaseModel):
 
 class ForumCategoryResponse(ForumCategoryBase):
     id: int
+    icon_url: Optional[str] = None
+
+    @model_validator(mode="after")
+    def set_icon_url(self) -> "ForumCategoryResponse":
+        icon_val = self.icon or ""
+        self.icon_url = _ICON_EMOJI_MAP.get(icon_val, icon_val or "📝")
+        return self
 
     class Config:
         from_attributes = True
@@ -132,6 +149,8 @@ class FAQResponse(FAQBase):
     id: int
     helpful_count: int = 0
     not_helpful_count: int = 0
+    category_name: Optional[str] = None
+    category_icon: Optional[str] = None
 
     class Config:
         from_attributes = True

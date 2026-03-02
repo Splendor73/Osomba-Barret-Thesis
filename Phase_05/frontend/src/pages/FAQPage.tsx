@@ -49,8 +49,8 @@ export function FAQPage() {
       const data = res.data;
       setFaq({
         id: data.id.toString(),
-        category: data.category?.name_en || 'General',
-        categoryIcon: data.category?.icon_url || '💡',
+        category: data.category_name || data.category?.name_en || 'General',
+        categoryIcon: data.category_icon || data.category?.icon_url || '💡',
         title: data.question,
         answer: data.answer,
         lastUpdated: new Date(data.updated_at || data.created_at).toLocaleDateString(),
@@ -64,8 +64,8 @@ export function FAQPage() {
         .map((f: any) => ({
           id: f.id,
           question: f.question,
-          category_name: f.category?.name_en || 'General',
-          category_icon: f.category?.icon_url || '💡',
+          category_name: f.category_name || f.category?.name_en || 'General',
+          category_icon: f.category_icon || f.category?.icon_url || '💡',
         }));
       setRelatedFaqs(others);
     } catch (err: any) {
