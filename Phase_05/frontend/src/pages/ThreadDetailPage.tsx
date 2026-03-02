@@ -401,7 +401,7 @@ export function ThreadDetailPage() {
                     </button>
                   )}
 
-                  {officialAnswer && (
+                  {officialAnswer && role === 'admin' && (
                     <button
                       onClick={handleBookmarkFAQ}
                       className="flex items-center gap-2 px-4 py-2 bg-[#F67C01] text-white rounded-lg hover:bg-[#e06d00] transition-colors"
