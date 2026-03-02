@@ -123,18 +123,17 @@ export function CategoryManagementPage() {
       fetchData(); // Refresh list
     } catch (err) {
       console.error("Failed to save category:", err);
-      alert("Failed to save category. Please ensure names are unique.");
+      setError("Failed to save category. Please ensure names are unique.");
     }
   };
 
   const handleArchive = async (id: number) => {
     try {
-      if (confirm("Are you sure you want to archive this category? Users won't be able to post in it.")) {
-        await api.put(`/support/categories/${id}`, { is_active: false });
-        fetchData();
-      }
+      await api.put(`/support/categories/${id}`, { is_active: false });
+      fetchData();
     } catch (err) {
       console.error("Archive failed:", err);
+      setError("Failed to archive category.");
     }
   };
 
@@ -203,7 +202,7 @@ export function CategoryManagementPage() {
               className="w-10 h-10 rounded-full object-cover"
             />
             <div>
-              <p className="text-white text-sm font-medium">{currentUser?.full_name || "Admin User"}</p>
+              <p className="text-white text-sm font-medium">{currentUser?.name || currentUser?.full_name || "Admin User"}</p>
               <p className="text-green-100 text-xs uppercase">{currentRole}</p>
             </div>
           </div>
