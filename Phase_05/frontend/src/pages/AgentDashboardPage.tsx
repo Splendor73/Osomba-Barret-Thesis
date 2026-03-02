@@ -7,7 +7,6 @@ import {
   Search,
   Flag,
   Eye,
-  MoreVertical,
   CheckCircle,
   Users,
   Settings,
@@ -87,7 +86,12 @@ export function AgentDashboardPage() {
   const filteredThreads = unansweredThreads.filter((thread) => {
     if (categoryFilter !== "All" && thread.category_name !== categoryFilter) return false;
     if (searchQuery && !thread.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    // Date filter could be added here if needed
+    if (dateFilter !== "All time") {
+      const daysAgo = dateFilter === "Last 7 days" ? 7 : 30;
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - daysAgo);
+      if (new Date(thread.created_at) < cutoff) return false;
+    }
     return true;
   });
 
@@ -281,7 +285,6 @@ export function AgentDashboardPage() {
                     <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Author</th>
                     <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Posted</th>
                     <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Views</th>
-                    <th className="w-12 px-6 py-3"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -322,11 +325,6 @@ export function AgentDashboardPage() {
                             <Eye className="w-4 h-4" />
                             <span className="text-sm">{thread.view_count}</span>
                           </div>
-                        </td>
-                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                          <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                            <MoreVertical className="w-4 h-4 text-gray-600" />
-                          </button>
                         </td>
                       </tr>
                     );
