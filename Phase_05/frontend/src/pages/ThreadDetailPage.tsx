@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { CheckCircle, ChevronLeft, Bookmark, Lock, Send, X, User } from "lucide-react";
+import { CheckCircle, ChevronLeft, Bookmark, Lock, Unlock, Send, X, User } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { StatusBadge } from "../components/StatusBadge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -142,6 +142,17 @@ export function ThreadDetailPage() {
       fetchThreadData();
     } catch (err) {
       setToast({ message: "Failed to lock thread.", type: "error" });
+    }
+  };
+
+  const handleUnlockThread = async () => {
+    try {
+      await api.post(`/support/topics/${id}/lock`, { is_locked: false });
+      setShowActionsMenu(false);
+      setToast({ message: "Thread unlocked successfully!", type: "success" });
+      fetchThreadData();
+    } catch (err) {
+      setToast({ message: "Failed to unlock thread.", type: "error" });
     }
   };
 
@@ -391,13 +402,21 @@ export function ThreadDetailPage() {
                   Agent Actions
                 </h4>
                 <div className="flex flex-wrap items-center gap-3">
-                  {!topic.is_locked && (
+                  {!topic.is_locked ? (
                     <button
                       onClick={handleLockThread}
                       className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <Lock className="w-4 h-4" />
                       Lock Thread
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleUnlockThread}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#46BB39] text-white rounded-lg hover:bg-[#3ca330] transition-colors"
+                    >
+                      <Unlock className="w-4 h-4" />
+                      Unlock Thread
                     </button>
                   )}
 
