@@ -106,7 +106,7 @@ export function UserManagementPage() {
       setSelectedUser(null);
     } catch (err) {
       console.error("Failed to update role:", err);
-      alert("Failed to update user role.");
+      setError("Failed to update user role. Please try again.");
     }
   };
 
@@ -187,7 +187,7 @@ export function UserManagementPage() {
               className="w-10 h-10 rounded-full object-cover"
             />
             <div>
-              <p className="text-white text-sm font-medium">{currentUser?.full_name || "Admin User"}</p>
+              <p className="text-white text-sm font-medium">{currentUser?.name || currentUser?.full_name || "Admin User"}</p>
               <p className="text-green-100 text-xs uppercase">{currentRole}</p>
             </div>
           </div>
