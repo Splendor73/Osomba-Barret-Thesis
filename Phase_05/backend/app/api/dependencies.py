@@ -93,8 +93,9 @@ async def get_admin_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     payload = verify_cognito_token(credentials.credentials)
-    groups = payload.get("cognito:groups", [])
-    if "admin" not in groups and current_user.role != "admin":
+    groups = [g.lower() for g in payload.get("cognito:groups", [])]
+    role = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role or "")
+    if "admins" not in groups and "admin" not in groups and role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
@@ -103,8 +104,9 @@ async def get_agent_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     payload = verify_cognito_token(credentials.credentials)
-    groups = payload.get("cognito:groups", [])
-    if "agent" not in groups and "admin" not in groups and current_user.role != "admin":
+    groups = [g.lower() for g in payload.get("cognito:groups", [])]
+    role = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role or "")
+    if not ({"agents", "admins", "agent", "admin"} & set(groups)) and role not in ("agent", "admin"):
         raise HTTPException(status_code=403, detail="Agent or Admin access required")
     return current_user
 
