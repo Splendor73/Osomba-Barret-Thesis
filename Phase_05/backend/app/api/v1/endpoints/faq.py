@@ -52,4 +52,4 @@ def vote_faq(faq_id: int, vote: FAQVote, db: SessionDep):
     faq = faq_crud.vote_faq(db, faq_id=faq_id, is_helpful=vote.is_helpful)
     if not faq:
         raise HTTPException(status_code=404, detail="FAQ not found")
-    return faq
+    return _enrich_faq(faq)

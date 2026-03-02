@@ -208,7 +208,10 @@ export function FAQPage() {
 
         {/* Edit Button (Agent/Admin Only) */}
         {canEdit && !isLoading && !error && (
-          <button className="fixed bottom-8 right-8 bg-[#F67C01] text-white px-5 py-3 rounded-full shadow-lg hover:bg-[#d56b01] transition-colors flex items-center gap-2">
+          <button
+            onClick={() => navigate(`/admin/faq/${faq?.id}/edit`)}
+            className="fixed bottom-8 right-8 bg-[#F67C01] text-white px-5 py-3 rounded-full shadow-lg hover:bg-[#d56b01] transition-colors flex items-center gap-2"
+          >
             <Edit className="w-4 h-4" />
             Edit FAQ
           </button>
