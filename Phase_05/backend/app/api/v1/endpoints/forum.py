@@ -62,13 +62,16 @@ def official_answer(topic_id: int, req: OfficialAnswerRequest, db: SessionDep, a
     update_data = ForumPostUpdate(content=existing.content, is_accepted_answer=True)
     updated_post = forum_service.update_post(db, post_id_to_mark, update_data)
 
-    # Notify topic author
-    topic_author = db.query(User).filter(User.user_id == topic.user_id).first()
-    if topic_author and topic_author.email:
-        subject = "Your question has been answered on Somba Support"
-        html_content = f"An official answer has been posted to your topic: {topic.title}. <br/> View it <a href='https://osomba.com/thread/{topic.id}'>here</a>."
-        send_notification_email(topic_author.email, subject, html_content)
-        
+    # Notify topic author (best-effort, never crash the endpoint)
+    try:
+        topic_author = db.query(User).filter(User.user_id == topic.user_id).first()
+        if topic_author and topic_author.email:
+            subject = "Your question has been answered on Somba Support"
+            html_content = f"An official answer has been posted to your topic: {topic.title}. <br/> View it <a href='https://osomba.com/thread/{topic.id}'>here</a>."
+            send_notification_email(topic_author.email, subject, html_content)
+    except Exception as e:
+        print(f"[Email] Failed to notify topic author: {e}")
+
     return updated_post
 
 @router.post("/topics/{topic_id}/lock", response_model=UIForumTopicResponse)
