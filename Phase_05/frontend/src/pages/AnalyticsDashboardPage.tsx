@@ -44,7 +44,33 @@ export function AnalyticsDashboardPage() {
       return;
     }
 
-    const fetchAnalytics = async () => {
+    const handleExport = () => {
+    const rows = [
+      ["Metric", "Value"],
+      ["Total Forum Posts", overview?.total_posts ?? ""],
+      ["Total Answered", overview?.total_answered ?? ""],
+      ["Active FAQs", overview?.total_faqs ?? ""],
+      ["Total AI Queries", overview?.total_ai_queries ?? ""],
+      ["Deflection Rate (%)", overview?.deflection_rate ?? ""],
+      ["Avg Response Time", overview?.avg_response_time ?? ""],
+      [],
+      ["Date", "Post Count"],
+      ...postsOverTime.map((r: any) => [r.date, r.count]),
+      [],
+      ["Category", "Thread Count"],
+      ...categoryDist.map((r: any) => [r.category, r.count]),
+    ];
+    const csv = rows.map(r => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `osomba-analytics-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const fetchAnalytics = async () => {
       try {
         const [overviewRes, postsRes, categoryRes] = await Promise.all([
           api.get("/admin/analytics/overview"),
@@ -126,7 +152,7 @@ export function AnalyticsDashboardPage() {
               className="w-10 h-10 rounded-full object-cover"
             />
             <div>
-              <p className="text-white text-sm font-medium">{user?.full_name || "Admin User"}</p>
+              <p className="text-white text-sm font-medium">{user?.name || user?.full_name || "Admin User"}</p>
               <p className="text-orange-100 text-xs uppercase">{role}</p>
             </div>
           </div>
@@ -142,9 +168,13 @@ export function AnalyticsDashboardPage() {
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-gray-900">Analytics Dashboard</h1>
             <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 bg-[#F67C01] text-white rounded-lg hover:bg-[#d56b01] transition-colors shadow-sm">
+              <button
+                onClick={handleExport}
+                disabled={!overview}
+                className="flex items-center gap-2 px-4 py-2 bg-[#F67C01] text-white rounded-lg hover:bg-[#d56b01] transition-colors shadow-sm disabled:opacity-50"
+              >
                 <Download className="w-4 h-4" />
-                Export Report
+                Export CSV
               </button>
             </div>
           </div>

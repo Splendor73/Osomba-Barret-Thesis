@@ -30,14 +30,35 @@ def get_analytics_overview(db: SessionDep, admin: AdminUserDep):
     deflection_rate = 0.0
     if total_ai_queries > 0:
         deflection_rate = ((total_ai_queries - escalated_queries) / total_ai_queries) * 100.0
-        
+
+    # Compute avg response time: avg hours between topic creation and first accepted post
+    answered_topics = (
+        db.query(ForumTopic.created_at, func.min(ForumPost.created_at).label("first_answer"))
+        .join(ForumPost, ForumTopic.id == ForumPost.topic_id)
+        .filter(ForumPost.is_accepted_answer == True)
+        .group_by(ForumTopic.id, ForumTopic.created_at)
+        .all()
+    )
+    if answered_topics:
+        total_hours = sum(
+            (row.first_answer - row.created_at).total_seconds() / 3600
+            for row in answered_topics
+            if row.first_answer and row.created_at
+        )
+        avg_hours = total_hours / len(answered_topics)
+        h = int(avg_hours)
+        m = int((avg_hours - h) * 60)
+        avg_response_time = f"{h}h {m}m"
+    else:
+        avg_response_time = "N/A"
+
     return {
         "total_posts": total_posts,
         "total_answered": total_answered,
         "total_faqs": total_faqs,
         "total_ai_queries": total_ai_queries,
         "deflection_rate": round(deflection_rate, 1),
-        "avg_response_time": "2h 45m"
+        "avg_response_time": avg_response_time
     }
 
 @router.get("/analytics/posts-over-time")
