@@ -90,7 +90,7 @@ class UIForumTopicResponse(ForumTopicResponse):
 # --- Forum Posts ---
 class ForumPostBase(BaseModel):
     content: str
-    topic_id: int
+    topic_id: Optional[int] = None
     parent_id: Optional[int] = None
 
 class ForumPostCreate(ForumPostBase):

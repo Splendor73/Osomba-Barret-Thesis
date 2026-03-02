@@ -320,11 +320,25 @@ export function ThreadDetailPage() {
                         className="w-full p-3 border border-gray-300 rounded-lg mb-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-[#F67C01]"
                         placeholder="Type your reply here..."
                       />
+                      {(role === 'agent' || role === 'admin') && !officialAnswer && (
+                        <label className="flex items-center gap-2 mb-4 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={isOfficialAnswer}
+                            onChange={(e) => setIsOfficialAnswer(e.target.checked)}
+                            className="w-4 h-4 accent-[#46BB39]"
+                          />
+                          <span className="text-sm font-medium text-gray-700">Mark as Official Answer</span>
+                          <CheckCircle className={`w-4 h-4 ${isOfficialAnswer ? 'text-[#46BB39]' : 'text-gray-300'}`} />
+                        </label>
+                      )}
                       <div className="flex items-center gap-3">
                         <button
                           onClick={handleSubmitReply}
                           className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
-                            submittingReply ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-[#F67C01] text-white hover:bg-[#d56b01]"
+                            submittingReply ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : isOfficialAnswer ? "bg-[#46BB39] text-white hover:bg-[#3ca330]"
+                            : "bg-[#F67C01] text-white hover:bg-[#d56b01]"
                           }`}
                           disabled={submittingReply || !replyText.trim()}
                         >
@@ -377,16 +391,6 @@ export function ThreadDetailPage() {
                   Agent Actions
                 </h4>
                 <div className="flex flex-wrap items-center gap-3">
-                  {!officialAnswer && (
-                    <button
-                      onClick={() => { setShowReplyBox(true); setIsOfficialAnswer(true); setReplyText(replyText || ""); }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#46BB39] text-white rounded-lg hover:bg-[#3ca330] transition-colors"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      Submit Official Answer
-                    </button>
-                  )}
-                  
                   {!topic.is_locked && (
                     <button
                       onClick={handleLockThread}
