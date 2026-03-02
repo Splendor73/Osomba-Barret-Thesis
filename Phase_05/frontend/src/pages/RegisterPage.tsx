@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { registerUser, confirmRegistration } from '../lib/auth';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -52,8 +52,7 @@ export const RegisterPage = () => {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <img src="/osomba-logo.png" alt="Osomba" className="h-16 w-auto mb-2" />
-          <p className="text-sm text-gray-500 mt-1">Customer Care & Support</p>
+          <img src="/osomba-logo.png" alt="Osomba" className="h-30 w-auto mb-2" />
         </div>
 
         {/* Card */}
@@ -130,14 +129,6 @@ export const RegisterPage = () => {
               </form>
             )}
 
-            {step === 'register' && (
-              <div className="text-center text-sm">
-                <span className="text-gray-600">Already have an account? </span>
-                <Link to="/login" className="font-medium text-[#F67C01] hover:underline">
-                  Sign in here
-                </Link>
-              </div>
-            )}
           </div>
         </div>
       </div>

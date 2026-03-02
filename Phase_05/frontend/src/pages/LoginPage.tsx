@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { loginUser } from '../lib/auth';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
@@ -40,8 +40,7 @@ export const LoginPage = () => {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <img src="/osomba-logo.png" alt="Osomba" className="h-16 w-auto mb-2" />
-          <p className="text-sm text-gray-500 mt-1">Customer Care & Support</p>
+          <img src="/osomba-logo.png" alt="Osomba" className="h-30 w-auto mb-2" />
         </div>
 
         {/* Card */}
@@ -83,12 +82,6 @@ export const LoginPage = () => {
               </Button>
             </form>
 
-            <div className="text-center text-sm">
-              <span className="text-gray-600">Don't have an account? </span>
-              <Link to="/register" className="font-medium text-[#46BB39] hover:underline">
-                Register here
-              </Link>
-            </div>
           </div>
         </div>
       </div>

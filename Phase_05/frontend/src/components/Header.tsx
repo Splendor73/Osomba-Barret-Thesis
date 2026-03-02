@@ -1,4 +1,4 @@
-import { Menu, X, BarChart3, User, Shield, Plus, LogOut, LogIn, UserPlus, Globe, Settings } from "lucide-react";
+import { Menu, X, BarChart3, User, Shield, Plus, LogOut, LogIn, Globe, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Vector from "../imports/Vector";
@@ -108,16 +108,10 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                   </button>
                 </>
               ) : (
-                <>
-                  <Link to="/login" className="hidden sm:flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-[#F67C01] hover:bg-orange-50 rounded-lg transition-colors font-medium">
+                <Link to="/login" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F67C01] to-[#46BB39] text-white rounded-lg transition-transform hover:scale-105 font-medium shadow-md">
                     <LogIn className="w-4 h-4" />
                     <span>Login</span>
                   </Link>
-                  <Link to="/register" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F67C01] to-[#46BB39] text-white rounded-lg transition-transform hover:scale-105 font-medium shadow-md">
-                    <UserPlus className="w-4 h-4" />
-                    <span>Register</span>
-                  </Link>
-                </>
               )}
             </div>
           </div>
@@ -196,22 +190,13 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                     </button>
                   </>
                 ) : (
-                  <>
-                    <button
+                  <button
                       onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
                       className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition-all font-medium"
                     >
                       <LogIn className="w-4 h-4" />
                       <span>Log In</span>
                     </button>
-                    <button
-                      onClick={() => { navigate('/register'); setMobileMenuOpen(false); }}
-                      className="flex items-center gap-3 w-full px-4 py-2.5 text-[#F67C01] hover:bg-orange-50 rounded-lg transition-all font-medium mt-1"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      <span>Create Account</span>
-                    </button>
-                  </>
                 )}
               </div>
             </div>
