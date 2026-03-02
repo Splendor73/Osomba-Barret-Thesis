@@ -22,23 +22,23 @@ export default function App() {
       <AuthProvider>
         <Router>
       <Routes>
-        {/* Public Pages with Header */}
+        {/* Protected Pages with Header */}
         <Route
           path="/"
           element={
-            <>
+            <ProtectedRoute>
               <Header />
               <HomePage />
-            </>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/thread/:id"
           element={
-            <>
+            <ProtectedRoute>
               <Header showSearch={false} />
               <ThreadDetailPage />
-            </>
+            </ProtectedRoute>
           }
         />
         {/* Auth Pages */}
@@ -57,19 +57,19 @@ export default function App() {
         <Route
           path="/ai-help"
           element={
-            <>
+            <ProtectedRoute>
               <Header showSearch={false} />
               <AIHelpPage />
-            </>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/faq/:id"
           element={
-            <>
+            <ProtectedRoute>
               <Header showSearch={false} />
               <FAQPage />
-            </>
+            </ProtectedRoute>
           }
         />
         

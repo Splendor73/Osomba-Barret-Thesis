@@ -40,7 +40,7 @@ export const LoginPage = () => {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <img src="/osomba-logo.png" alt="Osomba" className="h-30 w-auto mb-2" />
+          <img src="/osomba-logo.png" alt="Osomba" className="h-48 w-auto mb-2" />
         </div>
 
         {/* Card */}
