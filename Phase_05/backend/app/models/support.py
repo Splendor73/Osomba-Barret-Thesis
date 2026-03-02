@@ -99,6 +99,20 @@ class ForumPost(Base):
     user = relationship("User")
     replies = relationship("ForumPost", backref="parent", remote_side=[id])
 
+    @property
+    def author_name(self) -> str:
+        return self.user.full_name or self.user.email if self.user else "Unknown"
+
+    @property
+    def author_avatar(self) -> str:
+        return "https://images.unsplash.com/photo-1693035730007-fbc2c14c6814?w=100&h=100&fit=crop"
+
+    @property
+    def author_role(self) -> str:
+        if self.user and self.user.role:
+            return self.user.role.value
+        return "user"
+
 
 class FAQ(Base):
     __tablename__ = "faqs"

@@ -75,6 +75,7 @@ export function ThreadDetailPage() {
   const [bookmarked, setBookmarked] = useState(false);
   const [isOfficialAnswer, setIsOfficialAnswer] = useState(false);
   const [context, setContext] = useState<CustomerContext | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const fetchThreadData = async () => {
     setIsLoading(true);
@@ -127,7 +128,7 @@ export function ThreadDetailPage() {
       fetchThreadData(); // Refresh to show new post
     } catch (err) {
       console.error("Failed to post reply:", err);
-      alert("Failed to post reply. Please try again.");
+      setToast({ message: "Failed to post reply. Please try again.", type: "error" });
     } finally {
       setSubmittingReply(false);
     }
@@ -137,17 +138,17 @@ export function ThreadDetailPage() {
     try {
       await api.post(`/support/topics/${id}/lock`, { is_locked: true });
       setShowActionsMenu(false);
-      alert("Thread locked successfully!");
+      setToast({ message: "Thread locked successfully!", type: "success" });
       fetchThreadData();
     } catch (err) {
-      alert("Failed to lock thread.");
+      setToast({ message: "Failed to lock thread.", type: "error" });
     }
   };
 
   const handleBookmarkFAQ = async () => {
     const acceptedPost = posts.find(p => p.is_accepted_answer);
     if (!acceptedPost) {
-      alert("Only answered threads can be converted to FAQ.");
+      setToast({ message: "Only answered threads can be converted to FAQ.", type: "error" });
       return;
     }
     
@@ -158,9 +159,9 @@ export function ThreadDetailPage() {
       });
       setBookmarked(true);
       setShowActionsMenu(false);
-      alert("Thread converted to FAQ successfully!");
+      setToast({ message: "Thread converted to FAQ successfully!", type: "success" });
     } catch (err) {
-      alert("Failed to convert to FAQ.");
+      setToast({ message: "Failed to convert to FAQ.", type: "error" });
     }
   };
 
@@ -193,6 +194,15 @@ export function ThreadDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <OrganicBackground variant="alternate" />
+
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-lg shadow-lg text-white font-medium transition-all ${
+          toast.type === 'success' ? 'bg-[#46BB39]' : 'bg-red-500'
+        }`}>
+          {toast.message}
+          <button onClick={() => setToast(null)} className="ml-3 text-white/80 hover:text-white">&times;</button>
+        </div>
+      )}
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 z-10">
         <button
