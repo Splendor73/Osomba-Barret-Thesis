@@ -877,8 +877,8 @@
     border-color: oklab(69.5873% -.142158 .0448781 / .2);
   }
 
-  .border-\[\#2563EB\] {
-    border-color: #2563eb;
+  .border-\[\#F67C01\] {
+    border-color: #F67C01;
   }
 
   .border-\[\#EF4444\] {
@@ -923,8 +923,8 @@
     background-color: #10b981;
   }
 
-  .bg-\[\#2563EB\] {
-    background-color: #2563eb;
+  .bg-\[\#F67C01\] {
+    background-color: #F67C01;
   }
 
   .bg-\[\#EF4444\] {
@@ -1014,8 +1014,8 @@
     background-image: linear-gradient(var(--tw-gradient-stops));
   }
 
-  .from-\[\#2563EB\] {
-    --tw-gradient-from: #2563eb;
+  .from-\[\#F67C01\] {
+    --tw-gradient-from: #F67C01;
     --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
   }
 
@@ -1192,8 +1192,8 @@
     color: #10b981;
   }
 
-  .text-\[\#2563EB\] {
-    color: #2563eb;
+  .text-\[\#F67C01\] {
+    color: #F67C01;
   }
 
   .text-\[\#EF4444\] {
@@ -1381,8 +1381,8 @@
   }
 
   @media (hover: hover) {
-    .hover\:text-\[\#2563EB\]:hover {
-      color: #2563eb;
+    .hover\:text-\[\#F67C01\]:hover {
+      color: #F67C01;
     }
   }
 
@@ -1421,8 +1421,8 @@
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
 
-  .focus\:ring-\[\#2563EB\]:focus {
-    --tw-ring-color: #2563eb;
+  .focus\:ring-\[\#F67C01\]:focus {
+    --tw-ring-color: #F67C01;
   }
 
   .focus\:outline-none:focus {
@@ -1528,7 +1528,7 @@
 }
 
 :root {
-  --primary-blue: #2563eb;
+  --primary-orange: #F67C01;
   --success-green: #10b981;
   --warning-yellow: #f59e0b;
   --danger-red: #ef4444;

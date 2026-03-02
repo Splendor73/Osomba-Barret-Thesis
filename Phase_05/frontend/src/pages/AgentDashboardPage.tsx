@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   MessageSquare,
-  FileText,
   BarChart3,
   Search,
   Flag,
@@ -12,6 +11,7 @@ import {
   CheckCircle,
   Users,
   Settings,
+  Home,
 } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -51,9 +51,9 @@ export function AgentDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [selectedThreads, setSelectedThreads] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [categoryNames, setCategoryNames] = useState<string[]>([]);
   const [dateFilter, setDateFilter] = useState("Last 7 days");
   const [sortBy, setSortBy] = useState("Newest first");
 
@@ -64,10 +64,14 @@ export function AgentDashboardPage() {
       return;
     }
 
-    const fetchTopics = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get("/support/topics?limit=100");
-        setTopics(res.data);
+        const [topicsRes, catsRes] = await Promise.all([
+          api.get("/support/topics?limit=100"),
+          api.get("/support/categories/"),
+        ]);
+        setTopics(topicsRes.data);
+        setCategoryNames(catsRes.data.map((c: any) => c.name_en || c.name));
       } catch (err: any) {
         console.error("Agent dashboard error:", err);
         setError("Failed to load threads.");
@@ -75,14 +79,8 @@ export function AgentDashboardPage() {
         setIsLoading(false);
       }
     };
-    fetchTopics();
+    fetchData();
   }, [authLoading, role, navigate]);
-
-  const toggleThreadSelection = (id: number) => {
-    setSelectedThreads((prev) =>
-      prev.includes(id) ? prev.filter((tid) => tid !== id) : [...prev, id]
-    );
-  };
 
   const unansweredThreads = topics.filter((t) => t.status !== "Answered");
 
@@ -113,7 +111,7 @@ export function AgentDashboardPage() {
   if (authLoading || isLoading) {
     return (
       <div className="flex h-screen bg-[#F3F4F6] relative">
-        <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col p-6">
+        <aside className="w-64 bg-gradient-to-b from-[#F67C01]/80 via-[#F89C4A]/80 to-[#46BB39]/80 backdrop-blur-md text-white flex flex-col p-6">
           <h2 className="text-white mb-8">Osomba Agent</h2>
         </aside>
         <main className="flex-1 p-8">
@@ -125,15 +123,22 @@ export function AgentDashboardPage() {
 
   return (
     <div className="flex h-screen bg-[#F3F4F6] relative">
-      <OrganicBackground variant="minimal" />
+      <OrganicBackground variant="dashboard" />
 
       {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col z-10">
+      <aside className="w-64 bg-gradient-to-b from-[#F67C01]/90 via-[#F89C4A]/90 to-[#46BB39]/90 backdrop-blur-md text-white flex flex-col z-10">
         <div className="p-6">
           <h2 className="text-white">Osomba {role === "admin" ? "Admin" : "Agent"}</h2>
         </div>
 
         <nav className="flex-1 px-3">
+          <button
+            onClick={() => navigate("/")}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors mb-1"
+          >
+            <Home className="w-5 h-5" />
+            <span>Home</span>
+          </button>
           {navItems.filter(item => item.roles.includes(role || "")).map((item) => {
             const Icon = item.icon;
             const badgeValue = item.badge === 'dynamic' ? unansweredThreads.length : item.badge;
@@ -186,21 +191,18 @@ export function AgentDashboardPage() {
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01]"
                 >
                   <option>All</option>
-                  <option>Payments</option>
-                  <option>Listings</option>
-                  <option>Safety</option>
-                  <option>Disputes</option>
-                  <option>Account</option>
-                  <option>Delivery</option>
+                  {categoryNames.map((name) => (
+                    <option key={name}>{name}</option>
+                  ))}
                 </select>
 
                 <select
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01]"
                 >
                   <option>Last 7 days</option>
                   <option>Last 30 days</option>
@@ -210,7 +212,7 @@ export function AgentDashboardPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01]"
                 >
                   <option>Oldest first</option>
                   <option>Newest first</option>
@@ -223,7 +225,7 @@ export function AgentDashboardPage() {
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01]"
                   />
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 </div>
@@ -231,7 +233,7 @@ export function AgentDashboardPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm text-gray-600">Open Threads</p>
@@ -245,24 +247,13 @@ export function AgentDashboardPage() {
 
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600">Avg Response Time</p>
-                  <div className="w-2 h-2 bg-[#2563EB] rounded-full"></div>
-                </div>
-                <p className="text-2xl text-gray-900 font-bold">
-                  4.2 hours
-                </p>
-                <p className="text-xs text-[#10B981] mt-1">-1.2 hrs from last week</p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600">Answered Today</p>
+                  <p className="text-sm text-gray-600">Answered</p>
                   <div className="w-2 h-2 bg-[#10B981] rounded-full"></div>
                 </div>
                 <p className="text-2xl text-gray-900 font-bold">
-                  8
+                  {topics.length - unansweredThreads.length}
                 </p>
-                <p className="text-xs text-[#10B981] mt-1">Great work!</p>
+                <p className="text-xs text-[#10B981] mt-1">Resolved threads</p>
               </div>
 
               <div className="bg-white rounded-lg shadow-sm p-6">
@@ -278,30 +269,12 @@ export function AgentDashboardPage() {
             </div>
           </div>
 
-          {/* Bulk Actions */}
-          {selectedThreads.length > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center justify-between">
-              <p className="text-gray-900 font-medium">{selectedThreads.length} selected</p>
-              <div className="flex items-center gap-3">
-                <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  Assign
-                </button>
-                <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  Close
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Thread Table */}
           {filteredThreads.length > 0 ? (
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="w-12 px-6 py-3 text-left">
-                      <input type="checkbox" className="rounded" />
-                    </th>
                     <th className="w-12 px-6 py-3 text-left"></th>
                     <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Title</th>
                     <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase">Category</th>
@@ -318,18 +291,10 @@ export function AgentDashboardPage() {
                       <tr
                         key={thread.id}
                         className={`border-b border-gray-100 cursor-pointer transition-colors ${
-                          urgent ? "bg-red-50 hover:bg-red-100" : "hover:bg-blue-50"
+                          urgent ? "bg-red-50 hover:bg-red-100" : "hover:bg-orange-50"
                         }`}
                         onClick={() => navigate(`/thread/${thread.id}`)}
                       >
-                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="checkbox"
-                            checked={selectedThreads.includes(thread.id)}
-                            onChange={() => toggleThreadSelection(thread.id)}
-                            className="rounded"
-                          />
-                        </td>
                         <td className="px-6 py-4">
                           {urgent && <span title="Over 24h old"><Flag className="w-4 h-4 text-[#EF4444]" /></span>}
                         </td>

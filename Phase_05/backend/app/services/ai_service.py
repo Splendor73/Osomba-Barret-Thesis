@@ -1,8 +1,8 @@
 import json
 import boto3
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 from app.core.config import settings
+from app.models.support import FAQ, ForumTopic
 
 def get_bedrock_client():
     """Initializes and returns the AWS Bedrock Runtime client."""
@@ -52,27 +52,46 @@ def generate_embedding(text_input: str) -> list[float]:
 
 def search_similar_content(db: Session, query_vector: list[float], limit: int = 5, similarity_threshold: float = 0.6):
     """
-    Searches the pgvector database for content embeddings most similar to the query vector.
+    Searches FAQs and ForumTopics for content embeddings most similar to the query vector.
+    Uses ORM-based pgvector cosine distance queries.
     """
-    # Convert list of floats to string format required by pgvector: '[0.1, 0.2, ...]'
-    vector_str = str(query_vector)
-
-    # Use cosine distance (<=>). Similarity = 1 - distance.
-    # We want similarity >= threshold, so distance <= (1 - threshold).
     max_distance = 1.0 - similarity_threshold
 
-    sql_query = text("""
-        SELECT source_type, source_id, 1 - (embedding <=> :vector) AS similarity
-        FROM content_embeddings
-        WHERE (embedding <=> :vector) <= :max_distance
-        ORDER BY embedding <=> :vector
-        LIMIT :limit
-    """)
+    # Search FAQs
+    faq_results = (
+        db.query(FAQ, FAQ.embedding.cosine_distance(query_vector).label("distance"))
+        .filter(FAQ.embedding.isnot(None))
+        .filter(FAQ.embedding.cosine_distance(query_vector) < max_distance)
+        .order_by(FAQ.embedding.cosine_distance(query_vector))
+        .limit(limit)
+        .all()
+    )
 
-    results = db.execute(sql_query, {
-        "vector": vector_str,
-        "max_distance": max_distance,
-        "limit": limit
-    }).mappings().all()
+    # Search ForumTopics
+    topic_results = (
+        db.query(ForumTopic, ForumTopic.embedding.cosine_distance(query_vector).label("distance"))
+        .filter(ForumTopic.embedding.isnot(None))
+        .filter(ForumTopic.embedding.cosine_distance(query_vector) < max_distance)
+        .order_by(ForumTopic.embedding.cosine_distance(query_vector))
+        .limit(limit)
+        .all()
+    )
 
-    return results
+    # Combine into unified format expected by ai.py endpoint
+    results = []
+    for faq, distance in faq_results:
+        results.append({
+            "source_type": "faq",
+            "source_id": faq.id,
+            "similarity": 1 - distance
+        })
+    for topic, distance in topic_results:
+        results.append({
+            "source_type": "forum",
+            "source_id": topic.id,
+            "similarity": 1 - distance
+        })
+
+    # Sort by similarity descending and limit
+    results.sort(key=lambda x: x["similarity"], reverse=True)
+    return results[:limit]

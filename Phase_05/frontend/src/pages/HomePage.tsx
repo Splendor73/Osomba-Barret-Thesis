@@ -9,15 +9,6 @@ import { ErrorMessage } from "../components/ErrorMessage";
 import { OrganicBackground } from "../components/OrganicBackground";
 import { useLanguage } from "../context/LanguageContext";
 
-const categoryPills = [
-  { name: "Payments", emoji: "💳" },
-  { name: "Listings", emoji: "📝" },
-  { name: "Safety", emoji: "🛡️" },
-  { name: "Disputes", emoji: "⚠️" },
-  { name: "Account", emoji: "👤" },
-  { name: "Delivery", emoji: "🚚" },
-];
-
 import api from "../lib/api";
 
 type Question = {
@@ -46,8 +37,8 @@ export function HomePage() {
       setIsLoading(true);
       setError(null);
       const [topicsRes, faqsRes] = await Promise.all([
-        api.get('/forum/topics'),
-        api.get('/faq/')
+        api.get('/support/topics'),
+        api.get('/support/faq/')
       ]);
 
       const fetchedTopics = topicsRes.data.map((t: any) => ({
@@ -97,17 +88,17 @@ export function HomePage() {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await api.get(`/search/?query=${encodeURIComponent(searchQuery)}`);
-      const searchResults = res.data.results.map((r: any) => ({
+      const res = await api.get(`/support/search?query=${encodeURIComponent(searchQuery)}`);
+      const searchResults = (res.data.results || []).map((r: any) => ({
         id: r.id.toString(),
         status: r.type === 'faq' ? 'FAQ' : 'Forum Post',
         title: r.title,
-        preview: r.content || '',
-        category: r.category || 'General',
-        categoryIcon: '🔍',
-        date: r.date || '',
-        views: r.views || 0,
-        url: r.type === 'faq' ? `/faq/${r.id}` : `/thread/${r.id}`
+        preview: typeof r.content === 'string' ? r.content.substring(0, 150) + '...' : '',
+        category: 'General',
+        categoryIcon: r.type === 'faq' ? '💡' : '📝',
+        date: '',
+        views: 0,
+        url: r.type === 'faq' ? `/faq/${r.id}` : `/thread/${r.id}`,
       }));
       setQuestions(searchResults);
     } catch (err) {

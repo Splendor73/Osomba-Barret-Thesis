@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { X, Bold, Italic, List, Link as LinkIcon, CheckCircle } from "lucide-react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { X, CheckCircle } from "lucide-react";
 import { OrganicBackground } from "../components/OrganicBackground";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import api from "../lib/api";
@@ -37,7 +37,7 @@ export function PostQuestionPage() {
 
     const fetchCategories = async () => {
       try {
-        const res = await api.get('/support/categories');
+        const res = await api.get('/support/categories/');
         setCategories(res.data);
       } catch (err) {
         console.error("Failed to load categories", err);
@@ -163,7 +163,7 @@ export function PostQuestionPage() {
                     setErrors({ ...errors, category: "" });
                   }}
                   disabled={isLoadingCats}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] ${
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01] ${
                     errors.category ? "border-[#EF4444]" : "border-gray-300"
                   }`}
                 >
@@ -192,7 +192,7 @@ export function PostQuestionPage() {
                     setErrors({ ...errors, title: "" });
                   }}
                   placeholder={t('post.title_placeholder')}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] ${
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01] ${
                     errors.title ? "border-[#EF4444]" : "border-gray-300"
                   }`}
                   maxLength={200}
@@ -213,22 +213,6 @@ export function PostQuestionPage() {
                   {t('post.body_label')} <span className="text-[#EF4444]">*</span>
                 </label>
                 
-                {/* Rich Text Toolbar */}
-                <div className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-300 rounded-t-lg">
-                  <button className="p-2 hover:bg-gray-200 rounded transition-colors" title="Bold">
-                    <Bold className="w-4 h-4 text-gray-600" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-200 rounded transition-colors" title="Italic">
-                    <Italic className="w-4 h-4 text-gray-600" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-200 rounded transition-colors" title="List">
-                    <List className="w-4 h-4 text-gray-600" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-200 rounded transition-colors" title="Link">
-                    <LinkIcon className="w-4 h-4 text-gray-600" />
-                  </button>
-                </div>
-
                 <textarea
                   value={body}
                   onChange={(e) => {
@@ -236,7 +220,7 @@ export function PostQuestionPage() {
                     setErrors({ ...errors, body: "" });
                   }}
                   placeholder={t('post.body_placeholder')}
-                  className={`w-full px-4 py-3 border border-t-0 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] min-h-[200px] ${
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01] min-h-[200px] ${
                     errors.body ? "border-[#EF4444]" : "border-gray-300"
                   }`}
                   maxLength={5000}
@@ -252,66 +236,55 @@ export function PostQuestionPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-                <button className="text-[#2563EB] hover:underline">
-                  Save as Draft
+              <div className="flex items-center justify-end pt-6 border-t border-gray-200">
+                <button
+                  onClick={handleSubmit}
+                  disabled={!isFormValid}
+                  className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
+                    isFormValid
+                      ? "bg-[#F67C01] text-white hover:bg-[#d56b01]"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <LoadingSpinner size="small" />
+                      Posting...
+                    </>
+                  ) : (
+                    "Post Question"
+                  )}
                 </button>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => {/* Preview functionality */}}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Preview
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={!isFormValid}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
-                      isFormValid
-                        ? "bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <LoadingSpinner size="small" />
-                        Posting...
-                      </>
-                    ) : (
-                      "Post Question"
-                    )}
-                  </button>
-                </div>
               </div>
             </div>
           </div>
 
           {/* Help Sidebar */}
           <aside className="hidden lg:block w-80">
-            <div className="bg-blue-50 rounded-lg p-6 sticky top-24">
+            <div className="bg-orange-50 rounded-lg p-6 sticky top-24">
               <h3 className="mb-4 text-gray-900">Tips for a good question</h3>
               <ul className="space-y-3 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <span className="text-[#2563EB] mt-0.5">•</span>
+                  <span className="text-[#F67C01] mt-0.5">•</span>
                   <span>Be specific and clear about your issue</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#2563EB] mt-0.5">•</span>
+                  <span className="text-[#F67C01] mt-0.5">•</span>
                   <span>Include any error messages you received</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#2563EB] mt-0.5">•</span>
+                  <span className="text-[#F67C01] mt-0.5">•</span>
                   <span>Mention what steps you've already tried</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#2563EB] mt-0.5">•</span>
+                  <span className="text-[#F67C01] mt-0.5">•</span>
                   <span>Provide relevant IDs or reference numbers</span>
                 </li>
               </ul>
-              <div className="mt-6 pt-6 border-t border-blue-200">
-                <a href="/ai-help" className="text-[#2563EB] hover:underline text-sm">
+              <div className="mt-6 pt-6 border-t border-orange-200">
+                <Link to="/ai-help" className="text-[#F67C01] hover:underline text-sm">
                   Search existing questions first →
-                </a>
+                </Link>
               </div>
             </div>
           </aside>

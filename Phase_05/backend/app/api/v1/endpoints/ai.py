@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.api.dependencies import get_db, SessionDep, OptionalUserDep
 from app.services.ai_service import generate_embedding, search_similar_content
-from app.models.support import FAQ, ForumPost, ForumCategory, AiQueryLog
+from app.models.support import FAQ, ForumTopic, ForumPost, ForumCategory, AiQueryLog
 
 router = APIRouter()
 
@@ -48,23 +48,23 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
         if source_type == 'faq':
             faq = db.query(FAQ).filter(FAQ.id == source_id).first()
             if faq:
-                category_name = faq.category.name_en if faq.category else "General"
+                category_name = faq.category.name if hasattr(faq, 'category') and faq.category else "General"
                 suggestions.append(AiSuggestion(
                     id=str(faq.id),
-                    title=faq.title,
-                    snippet=faq.body[:150] + "..." if len(faq.body) > 150 else faq.body,
+                    title=faq.question,
+                    snippet=faq.answer[:150] + "..." if len(faq.answer) > 150 else faq.answer,
                     category=category_name,
                     source="FAQ",
                     confidence=confidence
                 ))
         elif source_type == 'forum':
-            post = db.query(ForumPost).filter(ForumPost.id == source_id).first()
-            if post:
-                category_name = post.category.name_en if post.category else "General"
+            topic = db.query(ForumTopic).filter(ForumTopic.id == source_id).first()
+            if topic:
+                category_name = topic.category.name if topic.category else "General"
                 suggestions.append(AiSuggestion(
-                    id=str(post.id),
-                    title=post.title,
-                    snippet=post.body[:150] + "..." if len(post.body) > 150 else post.body,
+                    id=str(topic.id),
+                    title=topic.title,
+                    snippet=topic.content[:150] + "..." if len(topic.content) > 150 else topic.content,
                     category=category_name,
                     source="Forum Post",
                     confidence=confidence

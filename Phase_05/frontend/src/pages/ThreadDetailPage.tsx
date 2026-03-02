@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Eye, ThumbsUp, ThumbsDown, CheckCircle, ChevronLeft, Bookmark, Lock, MoreVertical, Send, X, User } from "lucide-react";
+import { CheckCircle, ChevronLeft, Bookmark, Lock, Send, X, User } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { StatusBadge } from "../components/StatusBadge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -99,7 +99,8 @@ export function ThreadDetailPage() {
       }
     } catch (err: any) {
       console.error("Error fetching thread:", err);
-      setError("Failed to load thread details. Please try again.");
+      const detail = err.response?.data?.detail || err.message || "Unknown error";
+      setError(`Error loading thread: ${detail}`);
     } finally {
       setIsLoading(false);
     }
@@ -191,7 +192,7 @@ export function ThreadDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <OrganicBackground variant="minimal" />
+      <OrganicBackground variant="alternate" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 z-10">
         <button
@@ -223,11 +224,6 @@ export function ThreadDetailPage() {
                   <p className="text-gray-900 font-medium">{topic.author_name}</p>
                   <div className="flex items-center gap-3 text-sm text-gray-500">
                     <span>{formatDate(topic.created_at)}</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
-                      {topic.view_count} views
-                    </span>
                   </div>
                 </div>
               </div>
@@ -292,7 +288,7 @@ export function ThreadDetailPage() {
                   {!showReplyBox ? (
                     <button
                       onClick={() => { setShowReplyBox(true); setIsOfficialAnswer(false); }}
-                      className="flex items-center gap-2 px-6 py-3 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors shadow-sm"
+                      className="flex items-center gap-2 px-6 py-3 bg-[#F67C01] text-white rounded-lg hover:bg-[#d56b01] transition-colors shadow-sm"
                     >
                       <Send className="w-4 h-4" />
                       Write a Reply
@@ -311,14 +307,14 @@ export function ThreadDetailPage() {
                       <textarea
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg mb-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                        className="w-full p-3 border border-gray-300 rounded-lg mb-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-[#F67C01]"
                         placeholder="Type your reply here..."
                       />
                       <div className="flex items-center gap-3">
                         <button
                           onClick={handleSubmitReply}
                           className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
-                            submittingReply ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
+                            submittingReply ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-[#F67C01] text-white hover:bg-[#d56b01]"
                           }`}
                           disabled={submittingReply || !replyText.trim()}
                         >
@@ -479,10 +475,6 @@ export function ThreadDetailPage() {
                     <p className="text-sm text-gray-900 mb-2 line-clamp-2">{thread.title}</p>
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <CategoryBadge category={thread.category_name} size="small" />
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        {thread.view_count}
-                      </span>
                     </div>
                   </button>
                 ))}

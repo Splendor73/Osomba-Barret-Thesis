@@ -13,7 +13,7 @@ export function LoadingSpinner({ size = "medium", text }: LoadingSpinnerProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-3">
       <div
-        className={`animate-spin rounded-full border-[#2563EB] border-t-transparent ${sizeClasses[size]}`}
+        className={`animate-spin rounded-full border-[#F67C01] border-t-transparent ${sizeClasses[size]}`}
       ></div>
       {text && <p className="text-gray-600 text-sm">{text}</p>}
     </div>

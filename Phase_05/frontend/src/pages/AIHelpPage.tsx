@@ -267,7 +267,7 @@ export function AIHelpPage() {
                   <p className="text-gray-600 mb-4">{t('ai.still_need_help')}</p>
                   <button
                     onClick={handleEscalate}
-                    className="px-6 py-3 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors shadow-sm"
+                    className="px-6 py-3 bg-[#F67C01] text-white rounded-lg hover:bg-[#d56b01] transition-colors shadow-sm"
                   >
                     Post to Forum
                   </button>
@@ -280,7 +280,7 @@ export function AIHelpPage() {
                 <p className="text-gray-600 mb-6">Our support agents can help you directly</p>
                 <button
                   onClick={handleEscalate}
-                  className="px-6 py-3 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors shadow-sm"
+                  className="px-6 py-3 bg-[#F67C01] text-white rounded-lg hover:bg-[#d56b01] transition-colors shadow-sm"
                 >
                   Post to Forum
                 </button>

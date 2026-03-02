@@ -54,7 +54,7 @@ export function CategoryManagementPage() {
   const fetchData = async () => {
     try {
       const [catsRes, distRes] = await Promise.all([
-        api.get("/support/categories?limit=100"),
+        api.get("/support/categories/?limit=100"),
         api.get("/admin/analytics/category-distribution").catch(() => ({ data: [] }))
       ]);
 
@@ -105,7 +105,7 @@ export function CategoryManagementPage() {
   const handleSave = async () => {
     try {
       if (modalMode === "add") {
-        await api.post("/support/categories", {
+        await api.post("/support/categories/", {
           name: formData.name,
           icon: formData.emoji,
           description: formData.description || null,

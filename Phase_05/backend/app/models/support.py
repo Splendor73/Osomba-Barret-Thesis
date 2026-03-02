@@ -104,6 +104,7 @@ class FAQ(Base):
     __tablename__ = "faqs"
 
     id = Column(Integer, primary_key=True, index=True)
+    category_id = Column(Integer, ForeignKey("forum_categories.id"), nullable=True, index=True)
     question = Column(String, unique=True, index=True, nullable=False)
     answer = Column(Text, nullable=False)
     order_num = Column(Integer, default=0, nullable=False)
@@ -113,6 +114,8 @@ class FAQ(Base):
 
     # 384 dimensions for all-MiniLM-L6-v2 Semantic Search
     embedding = Column(Vector(384), nullable=True)
+
+    category = relationship("ForumCategory")
 
 
 

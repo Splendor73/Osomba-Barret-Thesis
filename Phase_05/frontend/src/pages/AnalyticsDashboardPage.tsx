@@ -8,9 +8,9 @@ import {
   Download,
   TrendingUp,
   CheckCircle,
-  Plus,
   Users,
   Settings,
+  Home,
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -36,7 +36,6 @@ export function AnalyticsDashboardPage() {
   const [overview, setOverview] = useState<any>(null);
   const [postsOverTime, setPostsOverTime] = useState<any[]>([]);
   const [categoryDist, setCategoryDist] = useState<any[]>([]);
-  const [topQs, setTopQs] = useState<any[]>([]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -47,17 +46,15 @@ export function AnalyticsDashboardPage() {
 
     const fetchAnalytics = async () => {
       try {
-        const [overviewRes, postsRes, categoryRes, queriesRes] = await Promise.all([
+        const [overviewRes, postsRes, categoryRes] = await Promise.all([
           api.get("/admin/analytics/overview"),
           api.get("/admin/analytics/posts-over-time"),
           api.get("/admin/analytics/category-distribution"),
-          api.get("/admin/analytics/top-queries")
         ]);
 
         setOverview(overviewRes.data);
         setPostsOverTime(postsRes.data);
         setCategoryDist(categoryRes.data);
-        setTopQs(queriesRes.data);
       } catch (err: any) {
         console.error("Failed to load analytics:", err);
         setError("Failed to load analytics dashboard.");
@@ -69,24 +66,10 @@ export function AnalyticsDashboardPage() {
     fetchAnalytics();
   }, [authLoading, role, navigate]);
 
-  const calculateFunnel = () => {
-    if (!overview) return [];
-    const total = overview.total_ai_queries || 0;
-    const rate = overview.deflection_rate || 0;
-    const foundAnswer = Math.round(total * (rate / 100));
-    const escalated = total - foundAnswer;
-
-    return [
-      { stage: "AI Queries", count: total, percentage: 100 },
-      { stage: "Found Answer (Deflected)", count: foundAnswer, percentage: rate },
-      { stage: "Escalated to Forum", count: escalated, percentage: 100 - rate }
-    ];
-  };
-
   if (authLoading || isLoading) {
     return (
       <div className="flex h-screen bg-[#F3F4F6] relative">
-        <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col p-6">
+        <aside className="w-64 bg-gradient-to-b from-[#F67C01]/80 via-[#F89C4A]/80 to-[#46BB39]/80 backdrop-blur-md text-white flex flex-col p-6">
           <h2 className="text-white">Osomba Admin</h2>
         </aside>
         <main className="flex-1 p-8 flex items-center justify-center">
@@ -96,19 +79,24 @@ export function AnalyticsDashboardPage() {
     );
   }
 
-  const funnelData = calculateFunnel();
-
   return (
     <div className="flex h-screen bg-[#F3F4F6] relative">
-      <OrganicBackground variant="minimal" />
+      <OrganicBackground variant="dashboard" />
 
       {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col z-10">
+      <aside className="w-64 bg-gradient-to-b from-[#F67C01]/90 via-[#F89C4A]/90 to-[#46BB39]/90 backdrop-blur-md text-white flex flex-col z-10">
         <div className="p-6">
           <h2 className="text-white">Osomba Admin</h2>
         </div>
 
         <nav className="flex-1 px-3">
+          <button
+            onClick={() => navigate("/")}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors mb-1"
+          >
+            <Home className="w-5 h-5" />
+            <span>Home</span>
+          </button>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = item.path === "/admin/analytics";
@@ -154,7 +142,7 @@ export function AnalyticsDashboardPage() {
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-gray-900">Analytics Dashboard</h1>
             <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors shadow-sm">
+              <button className="flex items-center gap-2 px-4 py-2 bg-[#F67C01] text-white rounded-lg hover:bg-[#d56b01] transition-colors shadow-sm">
                 <Download className="w-4 h-4" />
                 Export Report
               </button>
@@ -200,7 +188,7 @@ export function AnalyticsDashboardPage() {
               <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-sm text-gray-600 font-medium">Avg Response Time</p>
-                  <BarChart3 className="w-5 h-5 text-[#2563EB]" />
+                  <BarChart3 className="w-5 h-5 text-[#F67C01]" />
                 </div>
                 <p className="text-3xl text-gray-900 mb-2 font-bold">
                   {overview.avg_response_time}
@@ -256,70 +244,6 @@ export function AnalyticsDashboardPage() {
             </div>
           </div>
 
-          {/* AI Deflection Funnel */}
-          <div className="bg-white rounded-lg shadow-sm p-8 mb-8 border border-gray-100">
-            <h3 className="mb-6 text-gray-900 font-medium text-center">AI Support Deflection Funnel</h3>
-            <div className="max-w-3xl mx-auto space-y-6">
-              {funnelData.map((stage, idx) => {
-                const colors = ["#2563EB", "#10B981", "#EF4444"];
-                return (
-                  <div key={idx}>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-gray-700 font-medium">{stage.stage}</p>
-                      <p className="text-gray-900 font-bold">
-                        {stage.count.toLocaleString()} <span className="text-gray-500 font-medium ml-1">({Math.round(stage.percentage)}%)</span>
-                      </p>
-                    </div>
-                    <div className="h-10 rounded-lg overflow-hidden bg-gray-100">
-                      <div className="h-full flex items-center px-4 text-white font-medium transition-all duration-1000" style={{ width: `${Math.max(stage.percentage, 2)}%`, backgroundColor: colors[idx] }}>
-                        {Math.round(stage.percentage)}%
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Top Questions Table */}
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-gray-900 font-medium">Top AI Supported Queries</h3>
-            </div>
-            <div className="overflow-x-auto">
-              {topQs.length > 0 ? (
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Query Text</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Queries Logged</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topQs.map((q, idx) => (
-                      <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <p className="text-gray-900 font-medium">{q.query}</p>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-gray-900 font-semibold">{q.count}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <button className="flex items-center gap-1 text-sm text-[#2563EB] font-medium hover:text-[#1d4ed8] transition-colors bg-blue-50 px-3 py-1.5 rounded hover:bg-blue-100">
-                            <Plus className="w-4 h-4" />
-                            Draft FAQ
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="p-8 text-center text-gray-500">No AI queries logged yet.</div>
-              )}
-            </div>
-          </div>
         </div>
       </main>
     </div>

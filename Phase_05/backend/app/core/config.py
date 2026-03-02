@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     # AI Configuration
     embedding_model: str = Field(default="amazon.titan-embed-text-v2:0", alias="EMBEDDING_MODEL")
     ai_model: str = Field(default="anthropic.claude-3-haiku-20240307-v1:0", alias="AI_MODEL")
+    ai_similarity_threshold: float = Field(default=0.5, alias="AI_SIMILARITY_THRESHOLD")
 
     # Pydantic V2 modern configuration
     model_config = SettingsConfigDict(

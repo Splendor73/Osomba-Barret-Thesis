@@ -13,8 +13,6 @@
   --background-light: #FFFFFF;
   --background-gray: #F3F4F6;
   
-  /* Legacy support for existing components */
-  --primary-blue: #F67C01;
   --warning-yellow: #F59E0B;
   --danger-red: #EF4444;
 }

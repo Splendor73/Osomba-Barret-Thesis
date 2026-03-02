@@ -1,4 +1,3 @@
-import { Eye } from "lucide-react";
 import { CategoryBadge } from "./CategoryBadge";
 import { StatusBadge } from "./StatusBadge";
 
@@ -10,7 +9,7 @@ interface QuestionCardProps {
   category: string;
   categoryIcon?: string;
   date: string;
-  views: number;
+  views?: number;
   onClick?: () => void;
 }
 
@@ -21,7 +20,6 @@ export function QuestionCard({
   category,
   categoryIcon,
   date,
-  views,
   onClick,
 }: QuestionCardProps) {
   return (
@@ -35,7 +33,7 @@ export function QuestionCard({
       </div>
 
       {/* Title */}
-      <h3 className="mb-2 text-gray-900 hover:text-[#2563EB] transition-colors">
+      <h3 className="mb-2 text-gray-900 hover:text-[#F67C01] transition-colors">
         {title}
       </h3>
 
@@ -49,10 +47,6 @@ export function QuestionCard({
         <div className="flex items-center gap-2">
           <CategoryBadge category={category} icon={categoryIcon} size="small" />
           <span className="text-xs text-gray-500">{date}</span>
-        </div>
-        <div className="flex items-center gap-1 text-gray-500">
-          <Eye className="w-4 h-4" />
-          <span className="text-xs">{views}</span>
         </div>
       </div>
     </div>
