@@ -260,45 +260,25 @@
 
 ---
 
-## SECTION 10: Admin Category Management (`/admin/categories`) — Protected (admin)
+## SECTION 10: Admin Category Management (`/admin/categories`) — Protected (admin) ✅ DONE
 
-### Task 10.1 — Category CRUD works
-- **Verify**: Add new category → `POST /support/categories/` → appears in list
-- **Verify**: Edit category → `PUT /support/categories/:id` → name/icon updates
-- **Verify**: Archive category → `PUT /support/categories/:id` with `is_active: false`
+### Task 10.1 — Category CRUD works ✅
 
 ---
 
-## SECTION 11: Settings Page (`/settings`) — Protected
+## SECTION 11: Settings Page (`/settings`) — Protected ✅ DONE
 
-### Task 11.1 — Profile loads from API
-- **Flow**: `GET /auth/me` → fills profile display
-- **Verify**: Shows user email and name
-
-### Task 11.2 — Save settings works
-- **Flow**: Toggle marketing opt-in → `PUT /users/:id` with `{marketing_opt_in: true}`
-- **Verify**: Saves successfully, shows success message
-
-### Task 11.3 — Email & Push notification toggles don't persist — fix or remove
-- **Problem**: `emailNotifications` and `pushNotifications` state is CLIENT-SIDE ONLY. No backend field or endpoint.
-- **Fix Option A**: Add `email_notifications` and `push_notifications` boolean fields to User model + migration + include in PUT endpoint
-- **Fix Option B**: Remove these toggles from the UI (simpler for thesis)
+### Task 11.1 — Profile loads from API ✅
+### Task 11.2 — Save settings works ✅
+### Task 11.3 — Removed email/push toggles (no backend support) ✅
 
 ---
 
-## SECTION 12: Header & Navigation
+## SECTION 12: Header & Navigation ✅ DONE
 
-### Task 12.1 — Role-based nav links show correctly
-- **Verify**: Customer sees: Home, AI Help, Settings, Logout
-- **Verify**: Agent sees: + Agent Dashboard
-- **Verify**: Admin sees: + Analytics, User Management, Categories
-
-### Task 12.2 — "Ask a Question" floating button should check auth
-- **Problem**: Button navigates to `/post` without checking `isAuthenticated`
-- **Fix**: If not authenticated, redirect to `/login` with return path
-
-### Task 12.3 — Language toggle works
-- **Verify**: Toggle EN/FR changes text on pages that use `useLanguage()` hook
+### Task 12.1 — Role-based nav links show correctly ✅
+### Task 12.2 — FAB button now requires auth before navigating to /post ✅
+### Task 12.3 — Language toggle works ✅
 
 ---
 
@@ -328,16 +308,12 @@ VITE_COGNITO_USER_POOL_ID=<same-pool-id>
 VITE_COGNITO_CLIENT_ID=<same-client-id>
 ```
 
-### Task 13.2 — Run `vite build` with zero errors
-- **Verify**: `cd frontend && npx vite build` succeeds
+### Task 13.2 — Run `vite build` with zero errors ✅
+- `vite build` passes clean (only chunk size warning, not an error)
 
-### Task 13.3 — Run backend without crashes
-- **Verify**: `cd backend && uvicorn app.main:app --reload` starts without import errors
-- **Verify**: `GET http://localhost:8000/health` returns `{"status": "ok"}`
+### Task 13.3 — Run backend without crashes ✅ (previously verified)
 
-### Task 13.4 — Run seed script successfully
-- **Verify**: `cd backend && python scripts/seed_faqs.py` completes without errors
-- **Verify**: All embeddings are non-zero (Bedrock connected)
+### Task 13.4 — Run seed script successfully ✅ (previously verified)
 
 ---
 
