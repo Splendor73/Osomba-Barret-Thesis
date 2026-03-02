@@ -42,8 +42,8 @@ class Settings(BaseSettings):
     # Payment Configuration
     mpesa_api_key: Optional[str] = Field(default=None, alias="MPESA_API_KEY")
 
-    # SendGrid Configuration
-    sendgrid_api_key: Optional[str] = Field(default=None, alias="SENDGRID_API_KEY")
+    # AWS SES Configuration
+    ses_from_email: str = Field(default="no-reply@osomba.com", alias="SES_FROM_EMAIL")
 
     # AI Configuration
     embedding_model: str = Field(default="amazon.titan-embed-text-v2:0", alias="EMBEDDING_MODEL")
