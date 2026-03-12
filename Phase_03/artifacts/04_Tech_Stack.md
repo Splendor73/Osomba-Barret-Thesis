@@ -1,5 +1,5 @@
 # Technology Stack Document
-## Somba Customer Care Forum - Final Tech Decisions
+## Osomba Customer Care Forum - Final Tech Decisions
 
 **Author:** Yashu Gautamkumar Patel
 **Date:** December 3, 2025

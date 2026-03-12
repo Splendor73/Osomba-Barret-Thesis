@@ -1,5 +1,5 @@
 # AI Strategy Document
-## Somba Customer Care Forum - AI Help Board
+## Osomba Customer Care Forum - AI Help Board
 
 **Author:** Yashu Gautamkumar Patel
 **Date:** December 3, 2025
@@ -130,7 +130,7 @@ Category: Payments | Last updated: 2 days ago
 **Forum Citation:**
 ```
 From Forum Post: "My MPESA payment is not showing up"
-Answered by: John Agent (Somba Support Team) | 5 hours ago
+Answered by: John Agent (Osomba Support Team) | 5 hours ago
 ```
 
 **Why Citations Matter:**

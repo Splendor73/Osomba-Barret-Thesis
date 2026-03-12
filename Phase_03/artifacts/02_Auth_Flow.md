@@ -1,5 +1,5 @@
 # Authentication Flow Document
-## Somba Customer Care Forum - AWS Cognito Authentication
+## Osomba Customer Care Forum - AWS Cognito Authentication
 
 **Author:** Yashu Gautamkumar Patel
 **Date:** December 3, 2025
