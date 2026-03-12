@@ -1,97 +1,204 @@
-# Osomba Backend API
+# Osomba Support Forum — Backend API
 
-## 🐍 Project Overview
-The backend service for the Osomba Marketplace, built with **FastAPI** (Python). It provides a high-performance, asynchronous REST API to handle users, products, auctions, and orders.
+FastAPI backend for the Osomba Customer Care Forum, FAQ system, and AI Help Board. This is the thesis project component that provides support features for the Osomba Marketplace.
 
-## 🏗 Architecture (Refactored v2)
+## Tech Stack
 
-We follow a strictly layered architecture to decouple business logic from HTTP concerns and database access:
-`Model -> Schema -> Service -> Repository (CRUD) -> Endpoint`
+| Layer | Technology |
+|---|---|
+| Framework | FastAPI (Python 3.13) |
+| Database | PostgreSQL + pgvector |
+| Auth | AWS Cognito (JIT provisioning) |
+| Embeddings | AWS Bedrock (Titan Embed Text v2) |
+| Translation | Amazon Nova Micro (EN/FR) |
+| Email | AWS SES |
+| Hosting | Amazon RDS (database), Elastic Beanstalk (API) |
+
+## Architecture
+
+The backend follows a four-layer architecture:
+
+```
+Endpoints → Services → CRUD → Models
+```
+
+- **Endpoints** (`app/api/v1/endpoints/`) — Handle HTTP requests and responses
+- **Services** (`app/services/`) — Business logic (AI search, translation, email)
+- **CRUD** (`app/crud/`) — Database read/write operations
+- **Models** (`app/models/`) — SQLAlchemy table definitions
 
 ### Directory Structure
+
 ```
 app/
-├── main.py              # Application entry point & Middleware
-├── core/                # Config & Security (JWT, Hashing)
-├── models/              # SQLAlchemy Database Models (The source of truth)
-├── schemas/             # Pydantic Schemas (Validation & Serialization)
-├── services/            # PURE BUSINESS LOGIC (The "Brain")
-│   ├── auction_service.py
-│   ├── order_service.py
-│   └── product_service.py
-├── crud/                # DUMB DATA ACCESS (The "Hands")
-│   ├── crud_auction.py
-│   └── crud_order.py
-└── api/
-    ├── dependencies.py  # Dependency Injection (SessionDep, CurrentUserDep)
-    └── v1/
-        └── endpoints/   # Thin Controllers (HTTP handling only)
+├── main.py                  # Application entry point & CORS middleware
+├── core/
+│   ├── config.py            # Environment config (DB, AWS, Cognito)
+│   └── security.py          # JWT token validation
+├── models/
+│   ├── user.py              # User model (synced with Cognito)
+│   └── support.py           # ForumCategory, ForumTopic, ForumPost, FAQ, AiQueryLog
+├── schemas/
+│   └── support.py           # Pydantic request/response schemas
+├── services/
+│   ├── ai_service.py        # Bedrock embeddings + Nova Micro translation
+│   ├── auth_service.py      # Cognito JIT provisioning + token validation
+│   ├── email_service.py     # SES email notifications
+│   ├── forum_service.py     # Forum business logic
+│   ├── faq_service.py       # FAQ business logic
+│   └── search_service.py    # Semantic + keyword search
+├── crud/
+│   ├── forum.py             # Forum topic/post CRUD
+│   ├── faq.py               # FAQ CRUD
+│   └── category.py          # Category CRUD
+├── api/
+│   ├── dependencies.py      # Dependency injection (SessionDep, CurrentUserDep, AdminUserDep)
+│   └── v1/endpoints/
+│       ├── forum.py         # Forum topics, posts, official answers, convert-to-FAQ, undo FAQ
+│       ├── faq.py           # FAQ CRUD + voting
+│       ├── ai.py            # AI suggestion endpoint (semantic search)
+│       ├── admin.py         # Analytics + user management
+│       ├── categories.py    # Category management
+│       ├── auth.py          # Login/token endpoints
+│       └── search.py        # Unified search
+└── db/
+    └── database.py          # SQLAlchemy session + engine
 ```
 
-### Why this architecture?
-- **Services**: Contain all business rules (e.g., "Anti-Sniping", "Stock Validation"). They are framework-agnostic and easily unit-testable.
-- **Repositories (CRUD)**: Only handle SQL queries. They know *how* to save data but not *why*.
-- **Endpoints**: Only handle HTTP requests/responses. They delegate everything to Services.
+## Database Schema
 
-## ✨ Key Features
+The support system uses five main tables (defined in `app/models/support.py`):
 
-### 🔨 Bidding Engine (AuctionService)
-Located in `app/services/auction_service.py`.
-- **Proxy Bidding**: Users set a max bid, and the Service auto-bids for them up to that amount.
-- **Anti-Sniping**: Auctions automatically extend by 10 minutes if a bid is placed in the last 10 minutes.
-- **Atomic Operations**: Uses database locks to prevent race conditions during concurrent bidding.
+| Table | Purpose |
+|---|---|
+| `forum_categories` | Six support categories (Payments, Listings, Safety, Disputes, Account, Delivery) |
+| `forum_topics` | Forum threads with title, body, and 384-dim vector embedding |
+| `forum_posts` | Replies with `is_accepted_answer` flag |
+| `faqs` | Curated FAQ articles with vector embedding and `source_post_id` link |
+| `ai_query_logs` | Logs every AI query for analytics (deflection rate, top queries) |
 
-### 📦 Order Processing (OrderService)
-Located in `app/services/order_service.py`.
-- **Transactional Checkout**: Ensures stock is available and deducted atomically.
-- **Secure Calculations**: Total costs (tax, shipping) are calculated on the server.
+## API Endpoints
 
-## 🚀 Getting Started
+### Forum
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/support/topics` | Any | List topics (paginated, translatable) |
+| GET | `/support/topics/{id}` | Any | Get single topic (translated if `lang` param) |
+| POST | `/support/topics` | User | Create new topic |
+| POST | `/support/topics/{id}/posts` | User | Reply to a topic |
+| POST | `/support/topics/{id}/official-answer` | Agent+ | Mark reply as official answer + email notification |
+| POST | `/support/topics/{id}/lock` | Agent+ | Lock/unlock thread |
+| POST | `/support/topics/{id}/convert-to-faq` | Admin | Convert official answer to FAQ |
+| DELETE | `/support/topics/{id}/undo-faq/{post_id}` | Admin | Revert FAQ back to normal post |
+| GET | `/support/topics/{id}/faq-status/{post_id}` | Admin | Check if post has been converted to FAQ |
 
-### 1. Environment Setup
-Create a `.env` file in this directory (or rename `.env.example`).
+### FAQ
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/support/faq/` | Any | List all FAQs |
+| GET | `/support/faq/{id}` | Any | Get single FAQ |
+| POST | `/support/faq/` | Agent+ | Create FAQ (auto-generates embedding) |
+| PUT | `/support/faq/{id}` | Agent+ | Update FAQ |
+| DELETE | `/support/faq/{id}` | Agent+ | Delete FAQ |
+| POST | `/support/faq/{id}/vote` | Any | Helpful/not helpful vote |
+
+### AI
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| POST | `/support/ai/suggest` | Any | Semantic search against FAQ + ForumTopic |
+| POST | `/support/ai/escalate` | Any | Log escalation to forum |
+
+### Admin
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/admin/analytics` | Admin | Dashboard metrics (deflection rate, response time, etc.) |
+| GET | `/admin/users` | Admin | List users with search |
+| PUT | `/admin/users/{id}/role` | Admin | Change user role (updates DB + Cognito) |
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.11+
+- PostgreSQL with pgvector extension
+- AWS account with Cognito, Bedrock, SES configured
+
+### 1. Clone and set up environment
+
 ```bash
+cd Phase_05/backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Run the Server
+### 2. Configure environment variables
+
+Create a `.env` file in this directory:
+
+```
+DATABASE_URL=postgresql://postgres:password@localhost:5432/marketplace_test
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your-key
+AWS_SECRET_ACCESS_KEY=your-secret
+COGNITO_USER_POOL_ID=us-east-1_xxxxxxxxx
+COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+SES_SENDER_EMAIL=noreply@yourdomain.com
+```
+
+### 3. Run database migrations
+
+```bash
+alembic upgrade head
+```
+
+### 4. Start the server
+
 ```bash
 uvicorn app.main:app --reload
 ```
+
 The API will be available at `http://localhost:8000`.
 
-### 3. Documentation
-FastAPI automatically generates interactive documentation. Visit:
-- **Swagger UI**: `http://localhost:8000/docs`
-- **ReDoc**: `http://localhost:8000/redoc`
+### 5. API Documentation
 
-## 🛠 Testing
+FastAPI auto-generates interactive docs:
 
-We use `pytest` with a **Transactional Rollback** strategy.
-Tests run against a real database but wrap every test in a transaction that is rolled back at the end. This ensures a clean state for every test without slow manual cleanup.
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
-### Prerequisites
-1. Ensure your local Postgres is running.
-2. Create the test database:
-   ```bash
-   python scripts/create_test_db.py
-   ```
+## Testing
 
-### Running Tests
 ```bash
 # Run all tests
 pytest tests/
 
-# Run only API integration tests
-pytest tests/test_api_*.py
-
-# Run specific test file
-pytest tests/test_api_products.py
+# Run specific test suites
+pytest tests/test_api_forum.py        # Forum endpoints
+pytest tests/test_api_faq_thesis.py   # FAQ endpoints
+pytest tests/test_api_ai_thesis.py    # AI suggestion endpoint
+pytest tests/test_api_support_admin_thesis.py  # Admin analytics
 ```
 
-## 🧰 Utility Scripts
+Tests use `pytest-mock` to mock AWS services (Bedrock, SES) so they run without AWS credentials.
 
-- **`scripts/cleanup_user.py`**: "Total Reset" a user account in both AWS Cognito and RDS. Useful for E2E testing.
-- **`scripts/check_db.py`**: Verifies database connection using current `.env` settings and lists tables.
+## Demo Accounts
+
+These accounts exist in both AWS Cognito and the local database:
+
+| Role | Email | Password |
+|---|---|---|
+| Customer | `customer@osomba.com` | `OsombaDemo123!` |
+| Agent | `agent@osomba.com` | `OsombaDemo123!` |
+| Admin | `admin@osomba.com` | `OsombaDemo123!` |
+
+## Utility Scripts
+
+| Script | Purpose |
+|---|---|
+| `scripts/list_users.py` | List all users in the database |
+| `scripts/update_user.py` | Update user role or details |
+| `scripts/test_nova.py` | Test Nova Micro translation |
+| `scripts/test_titan.py` | Test Titan embedding generation |
+| `scripts/test_ses.py` | Test SES email sending |
+| `scripts/test_translate.py` | Test translation pipeline |

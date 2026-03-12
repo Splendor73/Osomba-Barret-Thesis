@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
   MessageSquare,
   FileText,
   BarChart3,
@@ -17,6 +16,7 @@ import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { OrganicBackground } from "../components/OrganicBackground";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import api from "../lib/api";
 
 interface Category {
@@ -28,19 +28,19 @@ interface Category {
   postCount?: number;
 }
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/agent-dashboard", badge: null },
-  { icon: MessageSquare, label: "Unanswered", path: "/agent-dashboard", badge: null },
-  { icon: BarChart3, label: "Analytics", path: "/admin/analytics", badge: null },
-  { icon: Users, label: "User Management", path: "/admin/users", badge: null },
-  { icon: Settings, label: "Categories", path: "/admin/categories", badge: null },
-];
-
 const emojiOptions = ["💳", "📝", "🛡️", "⚠️", "👤", "🚚", "📱", "💬", "🔧", "🎯", "📦", "🌟", "⚡", "🔔", "📊", "🎨"];
 
 export function CategoryManagementPage() {
   const navigate = useNavigate();
   const { user: currentUser, role: currentRole, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { icon: MessageSquare, label: t('agent.unanswered'), path: "/agent-dashboard", badge: null },
+    { icon: BarChart3, label: t('nav.analytics'), path: "/admin/analytics", badge: null },
+    { icon: Users, label: t('nav.user_management'), path: "/admin/users", badge: null },
+    { icon: Settings, label: t('nav.category_management'), path: "/admin/categories", badge: null },
+  ];
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +54,7 @@ export function CategoryManagementPage() {
   const fetchData = async () => {
     try {
       const [catsRes, distRes] = await Promise.all([
-        api.get("/support/categories/?limit=100"),
+        api.get("/support/categories/?limit=100&include_archived=true"),
         api.get("/admin/analytics/category-distribution").catch(() => ({ data: [] }))
       ]);
 
@@ -73,7 +73,7 @@ export function CategoryManagementPage() {
       setCategories(mergedCategories);
     } catch (err: any) {
       console.error("Failed to load categories:", err);
-      setError("Failed to load categories. Please try again.");
+      setError(t('categories.load_error'));
     } finally {
       setIsLoading(false);
     }
@@ -123,7 +123,7 @@ export function CategoryManagementPage() {
       fetchData(); // Refresh list
     } catch (err) {
       console.error("Failed to save category:", err);
-      setError("Failed to save category. Please ensure names are unique.");
+      setError(t('categories.save_error'));
     }
   };
 
@@ -133,7 +133,7 @@ export function CategoryManagementPage() {
       fetchData();
     } catch (err) {
       console.error("Archive failed:", err);
-      setError("Failed to archive category.");
+      setError(t('categories.archive_error'));
     }
   };
 
@@ -152,8 +152,8 @@ export function CategoryManagementPage() {
   if (authLoading || isLoading) {
     return (
       <div className="flex h-screen bg-[#F3F4F6] relative">
-        <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col p-6">
-          <h2 className="text-white">Osomba Admin</h2>
+        <aside className="w-64 bg-[#F67C01] text-white flex flex-col p-6">
+          <h2 className="text-white">{t('agent.osomba_admin')}</h2>
         </aside>
         <main className="flex-1 p-8 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
@@ -167,9 +167,9 @@ export function CategoryManagementPage() {
       <OrganicBackground variant="minimal" />
 
       {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col z-10">
+      <aside className="w-64 bg-[#F67C01] text-white flex flex-col z-10">
         <div className="p-6">
-          <h2 className="text-white">Osomba Admin</h2>
+          <h2 className="text-white">{t('agent.osomba_admin')}</h2>
         </div>
 
         <nav className="flex-1 px-3">
@@ -216,13 +216,13 @@ export function CategoryManagementPage() {
 
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-gray-900">Category Management</h1>
+            <h1 className="text-gray-900">{t('categories.title')}</h1>
             <button
               onClick={openAddModal}
               className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#46BB39] to-[#21825C] text-white rounded-lg hover:shadow-lg transition-all font-medium"
             >
               <Plus className="w-5 h-5" />
-              Add New Category
+              {t('categories.add_new')}
             </button>
           </div>
 
@@ -230,7 +230,7 @@ export function CategoryManagementPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-600 font-medium">Active Categories</p>
+                <p className="text-sm text-gray-600 font-medium">{t('categories.active_categories')}</p>
                 <Settings className="w-5 h-5 text-[#46BB39]" />
               </div>
               <p className="text-2xl text-gray-900 font-bold">
@@ -240,7 +240,7 @@ export function CategoryManagementPage() {
 
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-600 font-medium">Total Posts by Category</p>
+                <p className="text-sm text-gray-600 font-medium">{t('categories.total_posts')}</p>
                 <MessageSquare className="w-5 h-5 text-gray-400" />
               </div>
               <p className="text-2xl text-gray-900 font-bold">
@@ -250,7 +250,7 @@ export function CategoryManagementPage() {
 
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-600 font-medium">Archived</p>
+                <p className="text-sm text-gray-600 font-medium">{t('categories.archived_count')}</p>
                 <Archive className="w-5 h-5 text-gray-400" />
               </div>
               <p className="text-2xl text-gray-900 font-bold">
@@ -261,17 +261,17 @@ export function CategoryManagementPage() {
 
           {/* Active Categories */}
           <div className="mb-8">
-            <h2 className="mb-4 text-gray-900 font-medium">Active Categories</h2>
+            <h2 className="mb-4 text-gray-900 font-medium">{t('categories.active_categories')}</h2>
             <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
               {activeCategories.length > 0 ? (
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Icon</th>
-                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Name</th>
-                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Posts</th>
-                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Status</th>
-                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('categories.col_icon')}</th>
+                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('categories.col_name')}</th>
+                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('categories.col_posts')}</th>
+                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('categories.col_status')}</th>
+                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('categories.col_actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -288,7 +288,7 @@ export function CategoryManagementPage() {
                         </td>
                         <td className="px-6 py-4">
                           <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                            Active
+                            {t('status.active')}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -296,14 +296,14 @@ export function CategoryManagementPage() {
                             <button
                               onClick={() => openEditModal(category)}
                               className="p-2 text-[#46BB39] hover:bg-green-50 rounded transition-colors"
-                              title="Edit"
+                              title={t('buttons.edit')}
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleArchive(category.id)}
                               className="p-2 text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                              title="Archive"
+                              title={t('status.archived')}
                             >
                               <Archive className="w-4 h-4" />
                             </button>
@@ -314,7 +314,7 @@ export function CategoryManagementPage() {
                   </tbody>
                 </table>
               ) : (
-                <div className="p-8 text-center text-gray-500">No active categories found.</div>
+                <div className="p-8 text-center text-gray-500">{t('categories.no_active')}</div>
               )}
             </div>
           </div>
@@ -322,16 +322,16 @@ export function CategoryManagementPage() {
           {/* Archived Categories */}
           {archivedCategories.length > 0 && (
             <div>
-              <h2 className="mb-4 text-gray-900 font-medium">Archived Categories</h2>
+              <h2 className="mb-4 text-gray-900 font-medium">{t('categories.archived_categories')}</h2>
               <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Icon</th>
-                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Name</th>
-                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Posts</th>
-                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Status</th>
-                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('categories.col_icon')}</th>
+                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('categories.col_name')}</th>
+                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('categories.col_posts')}</th>
+                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('categories.col_status')}</th>
+                      <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('categories.col_actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -348,7 +348,7 @@ export function CategoryManagementPage() {
                         </td>
                         <td className="px-6 py-4">
                           <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-xs font-medium">
-                            Archived
+                            {t('status.archived')}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -356,7 +356,7 @@ export function CategoryManagementPage() {
                             onClick={() => handleUnarchive(category.id)}
                             className="text-[#46BB39] hover:text-[#21825C] font-medium text-sm transition-colors"
                           >
-                            Restore
+                            {t('buttons.restore')}
                           </button>
                         </td>
                       </tr>
@@ -376,7 +376,7 @@ export function CategoryManagementPage() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-gray-900 font-medium">
-                  {modalMode === "add" ? "Add New Category" : "Edit Category"}
+                  {modalMode === "add" ? t('categories.add_new') : t('categories.edit_category')}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
@@ -391,20 +391,20 @@ export function CategoryManagementPage() {
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category Name
+                    {t('categories.category_name')}
                   </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., Technical Support"
+                    placeholder={t('categories.name_placeholder')}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#46BB39]"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Icon
+                    {t('categories.select_icon')}
                   </label>
                   <div className="grid grid-cols-8 gap-2">
                     {emojiOptions.map((emoji) => (
@@ -424,22 +424,22 @@ export function CategoryManagementPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
+                    {t('categories.description')}
                   </label>
                   <input
                     type="text"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Optional description"
+                    placeholder={t('categories.desc_placeholder')}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#46BB39]"
                   />
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-                  <p className="text-sm text-gray-600 mb-2 font-medium">Preview</p>
+                  <p className="text-sm text-gray-600 mb-2 font-medium">{t('categories.preview')}</p>
                   <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-lg border border-gray-200">
                     <span className="text-2xl">{formData.emoji}</span>
-                    <span className="text-gray-900 font-medium">{formData.name || "Category Name"}</span>
+                    <span className="text-gray-900 font-medium">{formData.name || t('categories.category_name')}</span>
                   </div>
                 </div>
               </div>
@@ -449,7 +449,7 @@ export function CategoryManagementPage() {
                   onClick={() => setShowModal(false)}
                   className="flex-1 px-4 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                 >
-                  Cancel
+                  {t('buttons.cancel')}
                 </button>
                 <button
                   onClick={handleSave}
@@ -457,7 +457,7 @@ export function CategoryManagementPage() {
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#46BB39] to-[#21825C] text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="w-4 h-4" />
-                  {modalMode === "add" ? "Create" : "Save Changes"}
+                  {modalMode === "add" ? t('buttons.create') : t('buttons.save_changes')}
                 </button>
               </div>
             </div>

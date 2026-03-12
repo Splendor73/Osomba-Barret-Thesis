@@ -6,6 +6,7 @@ import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { OrganicBackground } from "../components/OrganicBackground";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import api from "../lib/api";
 
 type FAQ = {
@@ -31,6 +32,7 @@ export function FAQPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { role } = useAuth();
+  const { t, language } = useLanguage();
   const [faq, setFaq] = useState<FAQ | null>(null);
   const [helpful, setHelpful] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,8 +45,8 @@ export function FAQPage() {
       setIsLoading(true);
       setError(null);
       const [res, allFaqsRes] = await Promise.all([
-        api.get(`/support/faq/${id}`),
-        api.get(`/support/faq/?limit=10`),
+        api.get(`/support/faq/${id}?lang=${language}`),
+        api.get(`/support/faq/?limit=10&lang=${language}`),
       ]);
       const data = res.data;
       setFaq({
@@ -53,7 +55,7 @@ export function FAQPage() {
         categoryIcon: data.category_icon || data.category?.icon_url || '💡',
         title: data.question,
         answer: data.answer,
-        lastUpdated: new Date(data.updated_at || data.created_at).toLocaleDateString(),
+        lastUpdated: (() => { const d = new Date(data.updated_at || data.created_at); return isNaN(d.getTime()) ? '' : d.toLocaleDateString(); })(),
         views: (data.helpful_count || 0) + (data.not_helpful_count || 0),
         helpfulCount: data.helpful_count || 0,
         notHelpfulCount: data.not_helpful_count || 0,
@@ -71,7 +73,7 @@ export function FAQPage() {
     } catch (err: any) {
       console.error(err);
       const detail = err.response?.data?.detail || err.message || "Unknown error";
-      setError(`Error loading FAQ: ${detail}`);
+      setError(`${t('thread.load_error')}: ${detail}`);
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +81,7 @@ export function FAQPage() {
 
   useEffect(() => {
     fetchFaq();
-  }, [id]);
+  }, [id, language]);
 
   const handleVote = async (isHelpful: boolean) => {
     if (!faq || helpful !== null) return;
@@ -102,43 +104,37 @@ export function FAQPage() {
     <div className="min-h-screen bg-[#F9FAFB] relative overflow-hidden">
       <OrganicBackground variant="alternate" />
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 z-10">
-        {/* Back Button */}
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-gray-500 hover:text-[#F67C01] transition-colors mb-6"
         >
           <ChevronLeft className="w-4 h-4" />
-          Back to Forum
+          {t('buttons.back_to_forum')}
         </button>
 
         <div className="flex gap-8">
-          {/* Main Content */}
           <div className="flex-1">
             {isLoading ? (
               <div className="flex justify-center p-12">
                 <LoadingSpinner size="large" />
               </div>
             ) : error || !faq ? (
-              <ErrorMessage message={error || 'FAQ not found'} onRetry={fetchFaq} />
+              <ErrorMessage message={error || t('faq.not_found')} onRetry={fetchFaq} />
             ) : (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-                {/* Category + meta */}
                 <div className="flex items-center gap-3 mb-4">
                   <CategoryBadge category={faq.category} icon={faq.categoryIcon} size="small" />
-                  <span className="text-sm text-gray-400">Updated {faq.lastUpdated}</span>
+                  <span className="text-sm text-gray-400">{t('faq.updated')} {faq.lastUpdated}</span>
                 </div>
 
-                {/* Title */}
                 <h1 className="text-gray-900 mb-6">{faq.title}</h1>
 
-                {/* Answer */}
                 <div className="prose max-w-none text-gray-700 mb-8 pb-8 border-b border-gray-100">
                   <p className="whitespace-pre-wrap">{faq.answer}</p>
                 </div>
 
-                {/* Helpful Feedback */}
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-3">Was this helpful?</p>
+                  <p className="text-sm font-medium text-gray-600 mb-3">{t('faq.was_helpful')}</p>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => handleVote(true)}
@@ -150,7 +146,7 @@ export function FAQPage() {
                       }`}
                     >
                       <ThumbsUp className="w-4 h-4" />
-                      Yes · {faq.helpfulCount}
+                      {t('faq.yes')} · {faq.helpfulCount}
                     </button>
                     <button
                       onClick={() => handleVote(false)}
@@ -162,21 +158,20 @@ export function FAQPage() {
                       }`}
                     >
                       <ThumbsDown className="w-4 h-4" />
-                      No · {faq.notHelpfulCount}
+                      {t('faq.no')} · {faq.notHelpfulCount}
                     </button>
                   </div>
                   {helpful !== null && (
-                    <p className="mt-3 text-sm text-[#10B981]">Thanks for your feedback!</p>
+                    <p className="mt-3 text-sm text-[#10B981]">{t('faq.thanks_feedback')}</p>
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Related FAQs Sidebar */}
           <aside className="hidden lg:block w-80">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-              <h3 className="mb-4 text-gray-900 font-medium">Related FAQs</h3>
+              <h3 className="mb-4 text-gray-900 font-medium">{t('faq.related_faqs')}</h3>
               <div className="space-y-3">
                 {relatedFaqs.length > 0 ? (
                   relatedFaqs.map((related) => (
@@ -190,7 +185,7 @@ export function FAQPage() {
                     </button>
                   ))
                 ) : (
-                  <p className="text-sm text-gray-500 text-center py-4">No related FAQs found.</p>
+                  <p className="text-sm text-gray-500 text-center py-4">{t('faq.no_related')}</p>
                 )}
               </div>
 
@@ -199,21 +194,20 @@ export function FAQPage() {
                   onClick={() => navigate('/')}
                   className="w-full text-sm text-center text-[#F67C01] hover:text-[#d56b01] font-medium transition-colors"
                 >
-                  Browse all FAQs →
+                  {t('faq.browse_all')}
                 </button>
               </div>
             </div>
           </aside>
         </div>
 
-        {/* Edit Button (Agent/Admin Only) */}
         {canEdit && !isLoading && !error && (
           <button
             onClick={() => navigate(`/admin/faq/${faq?.id}/edit`)}
             className="fixed bottom-8 right-8 bg-[#F67C01] text-white px-5 py-3 rounded-full shadow-lg hover:bg-[#d56b01] transition-colors flex items-center gap-2"
           >
             <Edit className="w-4 h-4" />
-            Edit FAQ
+            {t('faq.edit_faq')}
           </button>
         )}
       </div>

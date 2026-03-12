@@ -16,7 +16,7 @@ export function SettingsPage() {
   const [success, setSuccess] = useState<boolean>(false);
 
   const [userId, setUserId] = useState<number | null>(null);
-  
+
   const [marketingOptIn, setMarketingOptIn] = useState(false);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export function SettingsPage() {
         setUserId(res.data.user_id);
         setMarketingOptIn(res.data.marketing_opt_in || false);
       } catch (err) {
-        setError('Failed to load settings');
+        setError(t('settings.load_error'));
       } finally {
         setIsLoading(false);
       }
@@ -47,7 +47,7 @@ export function SettingsPage() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError('Failed to save settings');
+      setError(t('settings.save_error'));
     } finally {
       setIsSaving(false);
     }
@@ -71,26 +71,25 @@ export function SettingsPage() {
           className="flex items-center gap-2 text-gray-700 hover:text-[#F67C01] mb-8 transition-colors font-medium"
         >
           <ArrowLeft className="w-5 h-5" />
-          Back to Dashboard
+          {t('buttons.back_to_dashboard')}
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Account Settings</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('settings.title')}</h1>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
           <div className="p-6 md:p-8">
             <h2 className="text-xl font-semibold flex items-center gap-2 text-gray-900 mb-6">
               <Bell className="w-6 h-6 text-[#F67C01]" />
-              Notifications
+              {t('settings.notifications')}
             </h2>
 
             {error && <ErrorMessage message={error} />}
 
             <div className="space-y-6">
-              {/* Marketing Opt-In Toggle (Connected to Backend) */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-base font-medium text-gray-900">Marketing & Offers</h3>
-                  <p className="text-sm text-gray-500 mt-1">Receive updates on new features, tips, and promotional offers.</p>
+                  <h3 className="text-base font-medium text-gray-900">{t('settings.marketing')}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{t('settings.marketing_desc')}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -106,7 +105,7 @@ export function SettingsPage() {
             </div>
 
             <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-end gap-4">
-              {success && <span className="text-sm text-[#46BB39] font-medium">Settings saved!</span>}
+              {success && <span className="text-sm text-[#46BB39] font-medium">{t('settings.saved')}</span>}
               <button
                 onClick={handleSave}
                 disabled={isSaving}
@@ -115,10 +114,10 @@ export function SettingsPage() {
                 {isSaving ? (
                   <>
                     <LoadingSpinner size="small" />
-                    Saving...
+                    {t('settings.saving')}
                   </>
                 ) : (
-                  "Save Changes"
+                  t('settings.save_changes')
                 )}
               </button>
             </div>

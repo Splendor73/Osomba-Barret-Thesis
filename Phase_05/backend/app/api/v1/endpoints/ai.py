@@ -71,18 +71,34 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
                     confidence=confidence
                 ))
 
-    # If no real DB connections yet or no results found, return mock to prevent UI crash
+    # Fallback: text-based search when semantic search returns nothing
     if not suggestions:
-        suggestions = [
-            AiSuggestion(
-                id="1",
-                title="Mock AI Suggestion (Fallback)",
-                snippet="We couldn't find a high-confidence match in the database, so here is a fallback suggestion.",
-                category="General",
-                source="FAQ",
-                confidence=50
-            )
-        ]
+        keyword = f"%{request.query}%"
+        existing_ids = set()
+
+        faq_hits = db.query(FAQ).filter(
+            (FAQ.question.ilike(keyword)) | (FAQ.answer.ilike(keyword))
+        ).limit(5).all()
+        for faq in faq_hits:
+            category_name = faq.category.name if hasattr(faq, 'category') and faq.category else "General"
+            suggestions.append(AiSuggestion(
+                id=str(faq.id), title=faq.question,
+                snippet=faq.answer[:150] + "..." if len(faq.answer) > 150 else faq.answer,
+                category=category_name, source="FAQ", confidence=30
+            ))
+            existing_ids.add(('faq', faq.id))
+
+        topic_hits = db.query(ForumTopic).filter(
+            (ForumTopic.title.ilike(keyword)) | (ForumTopic.content.ilike(keyword))
+        ).limit(5).all()
+        for topic in topic_hits:
+            category_name = topic.category.name if topic.category else "General"
+            suggestions.append(AiSuggestion(
+                id=str(topic.id), title=topic.title,
+                snippet=topic.content[:150] + "..." if len(topic.content) > 150 else topic.content,
+                category=category_name, source="Forum Post", confidence=30
+            ))
+            existing_ids.add(('topic', topic.id))
 
     # 4. Log to AiQueryLog
     log = AiQueryLog(

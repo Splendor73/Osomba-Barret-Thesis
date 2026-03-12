@@ -16,21 +16,28 @@ class AuthService:
     def get_or_provision_user(
         self, 
         sub: str, 
-        email: str, 
+        email: str | None = None, 
         terms_version: str | None = None, 
         marketing_opt_in: bool = False
     ) -> User:
         """
         Retrieves a user by Cognito SUB.
         If not found, attempts to re-link an orphaned email user.
-        If no orphan exists, provisions a new JIT user (requires terms_version).
+        If no orphan exists, provisions a new JIT user.
         """
         # 1. Try to find existing user by SUB
         user = self.db.query(User).filter(User.cognito_sub == sub).first()
         if user:
             return user
 
-        # 2. Try to find orphaned user by Email
+        # 2. If user not found by SUB, we need an email to proceed (either for re-linking or creation)
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email is required for user provisioning. Please ensure your authentication token includes the email scope."
+            )
+
+        # 3. Try to find orphaned user by Email
         orphan = user_repo.get_user_by_email(self.db, email)
         if orphan:
             print(f"JIT: Re-linking existing user {email} to new sub {sub}")
@@ -46,19 +53,16 @@ class AuthService:
             self.db.refresh(orphan)
             return orphan
 
-        # 3. Provision new JIT User
-        if not terms_version:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="terms_version is required for initial user provisioning"
-            )
+        # 4. Provision new JIT User
+        # Provide a default terms_version if not present to ensure the user is saved
+        final_terms_version = terms_version or "1.0"
 
         user = User(
             cognito_sub=sub,
             email=email,
             is_onboarded=False,
             accepted_terms_at=datetime.now(UTC),
-            terms_version=terms_version,
+            terms_version=final_terms_version,
             marketing_opt_in=marketing_opt_in
         )
         self.db.add(user)

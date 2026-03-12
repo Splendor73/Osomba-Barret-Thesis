@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
   MessageSquare,
   FileText,
   BarChart3,
@@ -11,11 +10,13 @@ import {
   UserCog,
   X,
   Settings,
+  Home,
 } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { OrganicBackground } from "../components/OrganicBackground";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import api from "../lib/api";
 
 interface User {
@@ -29,18 +30,18 @@ interface User {
   totalPosts?: number;
 }
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/agent-dashboard", badge: null },
-  { icon: MessageSquare, label: "Unanswered", path: "/agent-dashboard", badge: null },
-  { icon: BarChart3, label: "Analytics", path: "/admin/analytics", badge: null },
-  { icon: Users, label: "User Management", path: "/admin/users", badge: null },
-  { icon: Settings, label: "Categories", path: "/admin/categories", badge: null },
-];
-
 export function UserManagementPage() {
   const navigate = useNavigate();
   const { user: currentUser, role: currentRole, loading: authLoading } = useAuth();
-  
+  const { t } = useLanguage();
+
+  const navItems = [
+    { icon: MessageSquare, label: t('agent.unanswered'), path: "/agent-dashboard", badge: null },
+    { icon: BarChart3, label: t('nav.analytics'), path: "/admin/analytics", badge: null },
+    { icon: Users, label: t('nav.user_management'), path: "/admin/users", badge: null },
+    { icon: Settings, label: t('nav.category_management'), path: "/admin/categories", badge: null },
+  ];
+
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -57,7 +58,7 @@ export function UserManagementPage() {
       setUsers(res.data);
     } catch (err) {
       console.error("Failed to load users:", err);
-      setError("Failed to load users from the server.");
+      setError(t('users.load_error'));
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +77,7 @@ export function UserManagementPage() {
   const filteredUsers = users.filter((user) => {
     const roleStr = user.role ? String(user.role).toLowerCase() : "buyer";
     const mappedRole = roleStr === 'admin' ? "Admin" : (roleStr === 'agent' ? "Agent" : "Customer");
-    
+
     if (roleFilter !== "All" && mappedRole !== roleFilter) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -96,17 +97,17 @@ export function UserManagementPage() {
     if (!selectedUser) return;
     try {
       await api.put(`/admin/users/${selectedUser.user_id}/role`, { role: newRole });
-      
+
       // Update locally
-      setUsers(users.map(u => 
+      setUsers(users.map(u =>
         u.user_id === selectedUser.user_id ? { ...u, role: newRole } : u
       ));
-      
+
       setShowRoleModal(false);
       setSelectedUser(null);
     } catch (err) {
       console.error("Failed to update role:", err);
-      setError("Failed to update user role. Please try again.");
+      setError(t('users.update_error'));
     }
   };
 
@@ -116,7 +117,7 @@ export function UserManagementPage() {
     if (r === "admin") setNewRole("admin");
     else if (r === "agent") setNewRole("agent");
     else setNewRole("BUYER");
-    
+
     setShowRoleModal(true);
   };
 
@@ -137,8 +138,8 @@ export function UserManagementPage() {
   if (authLoading || isLoading) {
     return (
       <div className="flex h-screen bg-[#F3F4F6] relative">
-        <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col p-6">
-          <h2 className="text-white">Osomba Admin</h2>
+        <aside className="w-64 bg-[#F67C01] text-white flex flex-col p-6">
+          <h2 className="text-white">{t('agent.osomba_admin')}</h2>
         </aside>
         <main className="flex-1 p-8 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
@@ -150,14 +151,21 @@ export function UserManagementPage() {
   return (
     <div className="flex h-screen bg-[#F3F4F6] relative">
       <OrganicBackground variant="minimal" />
-      
+
       {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-[#F67C01] via-[#F89C4A] to-[#46BB39] text-white flex flex-col z-10">
+      <aside className="w-64 bg-[#F67C01] text-white flex flex-col z-10">
         <div className="p-6">
-          <h2 className="text-white">Osomba Admin</h2>
+          <h2 className="text-white">{t('agent.osomba_admin')}</h2>
         </div>
 
         <nav className="flex-1 px-3">
+          <button
+            onClick={() => navigate("/")}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors mb-1"
+          >
+            <Home className="w-5 h-5" />
+            <span>{t('nav.home')}</span>
+          </button>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = item.path === "/admin/users";
@@ -202,23 +210,23 @@ export function UserManagementPage() {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-gray-900">User Management</h1>
+              <h1 className="text-gray-900">{t('users.title')}</h1>
               <div className="flex items-center gap-3">
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#46BB39]"
                 >
-                  <option>All</option>
-                  <option>Customer</option>
-                  <option>Agent</option>
-                  <option>Admin</option>
+                  <option value="All">{t('users.all')}</option>
+                  <option value="Customer">{t('users.customer')}</option>
+                  <option value="Agent">{t('users.agent')}</option>
+                  <option value="Admin">{t('users.admin')}</option>
                 </select>
 
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search by name or email..."
+                    placeholder={t('users.search_placeholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onBlur={handleSearchBlur}
@@ -234,7 +242,7 @@ export function UserManagementPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600 font-medium">Total Users</p>
+                  <p className="text-sm text-gray-600 font-medium">{t('users.total_users')}</p>
                   <Users className="w-5 h-5 text-gray-400" />
                 </div>
                 <p className="text-2xl text-gray-900 font-bold">
@@ -244,7 +252,7 @@ export function UserManagementPage() {
 
               <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600 font-medium">Customers</p>
+                  <p className="text-sm text-gray-600 font-medium">{t('users.customers')}</p>
                   <UserCog className="w-5 h-5 text-gray-400" />
                 </div>
                 <p className="text-2xl text-gray-900 font-bold">
@@ -254,7 +262,7 @@ export function UserManagementPage() {
 
               <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600 font-medium">Agents</p>
+                  <p className="text-sm text-gray-600 font-medium">{t('users.agents')}</p>
                   <Shield className="w-5 h-5 text-[#46BB39]" />
                 </div>
                 <p className="text-2xl text-gray-900 font-bold">
@@ -264,7 +272,7 @@ export function UserManagementPage() {
 
               <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600 font-medium">Admins</p>
+                  <p className="text-sm text-gray-600 font-medium">{t('users.admins')}</p>
                   <Shield className="w-5 h-5 text-[#F67C01]" />
                 </div>
                 <p className="text-2xl text-gray-900 font-bold">
@@ -279,10 +287,10 @@ export function UserManagementPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">User</th>
-                  <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Email</th>
-                  <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Role</th>
-                  <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">Action</th>
+                  <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('users.col_user')}</th>
+                  <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('users.col_email')}</th>
+                  <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('users.col_role')}</th>
+                  <th className="px-6 py-3 text-left text-xs text-gray-600 uppercase font-semibold">{t('users.col_action')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -292,10 +300,10 @@ export function UserManagementPage() {
                       <div className="flex items-center gap-3">
                         <ImageWithFallback
                           src={u.avatar || "https://images.unsplash.com/photo-1693035730007-fbc2c14c6814?w=100&h=100&fit=crop"}
-                          alt={u.full_name || "User"}
+                          alt={u.full_name || t('users.unnamed')}
                           className="w-10 h-10 rounded-full object-cover"
                         />
-                        <span className="text-gray-900 font-medium">{u.full_name || "Unnamed User"}</span>
+                        <span className="text-gray-900 font-medium">{u.full_name || t('users.unnamed')}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -311,7 +319,7 @@ export function UserManagementPage() {
                         onClick={() => openRoleModal(u)}
                         className="text-[#46BB39] hover:text-[#21825C] font-medium text-sm transition-colors"
                       >
-                        Change Role
+                        {t('users.change_role')}
                       </button>
                     </td>
                   </tr>
@@ -322,7 +330,7 @@ export function UserManagementPage() {
 
           {filteredUsers.length === 0 && (
             <div className="bg-white rounded-lg shadow-sm p-12 text-center mt-6 border border-gray-100">
-              <p className="text-gray-500 font-medium">No users found matching your search.</p>
+              <p className="text-gray-500 font-medium">{t('users.no_users')}</p>
             </div>
           )}
         </div>
@@ -334,7 +342,7 @@ export function UserManagementPage() {
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-gray-900 font-medium">Change User Role</h3>
+                <h3 className="text-gray-900 font-medium">{t('users.modal_title')}</h3>
                 <button
                   onClick={() => setShowRoleModal(false)}
                   className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -349,17 +357,17 @@ export function UserManagementPage() {
                 <div className="flex items-center gap-3 mb-4">
                   <ImageWithFallback
                     src={selectedUser.avatar || "https://images.unsplash.com/photo-1693035730007-fbc2c14c6814?w=100&h=100&fit=crop"}
-                    alt={selectedUser.full_name || "User"}
+                    alt={selectedUser.full_name || t('users.unnamed')}
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div>
-                    <p className="text-gray-900 font-medium">{selectedUser.full_name || "Unnamed User"}</p>
+                    <p className="text-gray-900 font-medium">{selectedUser.full_name || t('users.unnamed')}</p>
                     <p className="text-sm text-gray-600">{selectedUser.email}</p>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-100">
-                  <p className="text-sm text-gray-600 mb-1 font-medium">Current Role</p>
+                  <p className="text-sm text-gray-600 mb-1 font-medium">{t('users.current_role')}</p>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(selectedUser.role)}`}>
                     {getRoleDisplay(selectedUser.role)}
                   </span>
@@ -367,13 +375,13 @@ export function UserManagementPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    New Role
+                    {t('users.new_role')}
                   </label>
                   <div className="space-y-2">
                     {[
-                      { val: "BUYER", label: "Customer", desc: "Can post questions and view content" },
-                      { val: "agent", label: "Agent", desc: "Can answer questions and manage posts" },
-                      { val: "admin", label: "Admin", desc: "Full access to all features and settings" }
+                      { val: "BUYER", label: t('users.customer'), desc: t('users.customer_desc') },
+                      { val: "agent", label: t('users.agent'), desc: t('users.agent_desc') },
+                      { val: "admin", label: t('users.admin'), desc: t('users.admin_desc') }
                     ].map((r) => (
                       <label
                         key={r.val}
@@ -403,7 +411,7 @@ export function UserManagementPage() {
 
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
                 <p className="text-sm text-yellow-800 font-medium">
-                  ⚠️ This action will be logged in the audit trail.
+                  {t('users.audit_warning')}
                 </p>
               </div>
 
@@ -412,13 +420,13 @@ export function UserManagementPage() {
                   onClick={() => setShowRoleModal(false)}
                   className="flex-1 px-4 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                 >
-                  Cancel
+                  {t('buttons.cancel')}
                 </button>
                 <button
                   onClick={handleRoleChange}
                   className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#46BB39] to-[#21825C] text-white rounded-lg hover:shadow-lg transition-all font-medium"
                 >
-                  Confirm Change
+                  {t('buttons.confirm_change')}
                 </button>
               </div>
             </div>

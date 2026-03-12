@@ -11,8 +11,11 @@ def send_notification_email(to_email: str, subject: str, html_content: str) -> b
     """Sends a transactional email using AWS SES."""
     try:
         ses = get_ses_client()
+        # Using the requested display name and production support email
+        source = f"Osomba Help <{settings.ses_from_email}>"
+        
         response = ses.send_email(
-            Source=settings.ses_from_email,
+            Source=source,
             Destination={'ToAddresses': [to_email]},
             Message={
                 'Subject': {'Data': subject, 'Charset': 'UTF-8'},

@@ -1,3 +1,5 @@
+import { useLanguage } from "../context/LanguageContext";
+
 interface CategoryBadgeProps {
   category: string;
   icon?: string;
@@ -16,6 +18,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export function CategoryBadge({ category, icon, size = "medium", clickable = false, onClick }: CategoryBadgeProps) {
+  const { t, language } = useLanguage();
   const colorClass = categoryColors[category] || "bg-gray-100 text-gray-700";
   
   const sizeClasses = {
@@ -23,6 +26,12 @@ export function CategoryBadge({ category, icon, size = "medium", clickable = fal
     medium: "px-3 py-1.5 text-sm",
     large: "px-4 py-2 text-base",
   };
+
+  // Robust translation lookup using flattened key
+  const baseName = (category || "").trim();
+  const translationKey = `categories.name_${baseName.toLowerCase()}`;
+  const translatedName = t(translationKey);
+  const displayName = translatedName !== translationKey ? translatedName : baseName;
 
   return (
     <span
@@ -32,7 +41,7 @@ export function CategoryBadge({ category, icon, size = "medium", clickable = fal
       }`}
     >
       {icon && <span>{icon}</span>}
-      {category}
+      {displayName}
     </span>
   );
 }

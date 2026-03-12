@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 from typing import List, Optional
 from app.api.dependencies import SessionDep, AgentUserDep
 from app.schemas.support import FAQCreate, FAQUpdate, FAQResponse, FAQVote
 from app.services import faq_service
 from app.crud import faq as faq_crud
+from app.services.ai_service import translate_text
 
 router = APIRouter()
 
@@ -16,16 +17,30 @@ def _enrich_faq(faq) -> dict:
     return data
 
 @router.get("/", response_model=List[FAQResponse])
-def get_faqs(db: SessionDep, skip: int = 0, limit: int = 100):
+def get_faqs(db: SessionDep, skip: int = 0, limit: int = 100, lang: Optional[str] = Query(None)):
     faqs = faq_service.get_faqs(db, skip, limit)
-    return [_enrich_faq(f) for f in faqs]
+    results = [_enrich_faq(f) for f in faqs]
+    
+    if lang and lang.lower() != 'en':
+        for r in results:
+            r["question"] = translate_text(r["question"], lang)
+            # Answer might be too long for bulk, typically just translate question
+            
+    return results
 
 @router.get("/{faq_id}", response_model=FAQResponse)
-def get_faq(faq_id: int, db: SessionDep):
+def get_faq(faq_id: int, db: SessionDep, lang: Optional[str] = Query(None)):
     faq = db.query(faq_crud.FAQ).filter(faq_crud.FAQ.id == faq_id).first()
     if not faq:
         raise HTTPException(status_code=404, detail="FAQ not found")
-    return _enrich_faq(faq)
+    
+    data = _enrich_faq(faq)
+    
+    if lang and lang.lower() != 'en':
+        data["question"] = translate_text(data["question"], lang)
+        data["answer"] = translate_text(data["answer"], lang)
+        
+    return data
 
 @router.post("/", response_model=FAQResponse)
 def create_faq(faq: FAQCreate, db: SessionDep, agent: AgentUserDep):

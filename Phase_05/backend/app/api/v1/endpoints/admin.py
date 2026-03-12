@@ -102,18 +102,51 @@ def get_admin_users(db: SessionDep, admin: AdminUserDep, search: str = ""):
 @router.put("/users/{user_id}/role")
 def update_user_role(user_id: int, request: UserRoleUpdateRequest, db: SessionDep, admin: AdminUserDep):
     from fastapi import HTTPException
+    import boto3
+    from app.core.config import settings
+
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-        
+
     try:
         new_role = UserRole(request.role.lower())
     except ValueError:
-        # Fallback if invalid role
         raise HTTPException(status_code=400, detail=f"Invalid role: {request.role}")
-        
+
+    # Update DB
     user.role = new_role
     db.commit()
+
+    # Sync Cognito groups (best-effort — never crash the endpoint)
+    try:
+        if user.cognito_sub and settings.cognito_user_pool_id:
+            cognito = boto3.client('cognito-idp', region_name=settings.aws_region)
+            pool_id = settings.cognito_user_pool_id
+            username = user.email  # Cognito username is email
+
+            # Remove from all role groups first
+            for group in ["Admins", "Agents"]:
+                try:
+                    cognito.admin_remove_user_from_group(
+                        UserPoolId=pool_id,
+                        Username=username,
+                        GroupName=group
+                    )
+                except cognito.exceptions.ResourceNotFoundException:
+                    pass  # group doesn't exist, skip
+
+            # Add to the correct group
+            if new_role.value == "admin":
+                cognito.admin_add_user_to_group(UserPoolId=pool_id, Username=username, GroupName="Admins")
+            elif new_role.value == "agent":
+                cognito.admin_add_user_to_group(UserPoolId=pool_id, Username=username, GroupName="Agents")
+            # customer = no group needed
+
+            print(f"[Cognito] Synced {username} → {new_role.value}")
+    except Exception as e:
+        print(f"[Cognito] Failed to sync groups for {user.email}: {e}")
+
     return {"status": "success", "new_role": user.role.value if hasattr(user.role, 'value') else str(user.role)}
 
 @router.get("/users/{user_id}/support-context")

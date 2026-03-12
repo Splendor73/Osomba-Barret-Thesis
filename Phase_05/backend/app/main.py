@@ -19,7 +19,16 @@ from app.db.database import engine
 from app.db.base import Base
 from sqlalchemy import inspect
 
-app = FastAPI(title="Somba API", version="1.0.0")
+app = FastAPI(title="Osomba API", version="1.0.0")
+
+# CORS middleware MUST be added before anything else to catch 404s and redirects
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify exact origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Exception Handlers
 @app.exception_handler(NotFoundException)
@@ -76,21 +85,14 @@ except Exception as e:
     print(f"Warning: Database initialization failed: {e}")
     # Continue anyway - app will still start
 
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Removed duplicated CORS middleware from bottom
 
 app.include_router(api_router, prefix="/api/v1")
 
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to Somba API"}
+    return {"message": "Welcome to Osomba API"}
 
 
 @app.get("/health")

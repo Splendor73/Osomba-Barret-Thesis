@@ -1,5 +1,5 @@
 import { Amplify } from 'aws-amplify';
-import { signIn, signUp, signOut, confirmSignUp, fetchAuthSession, getCurrentUser } from 'aws-amplify/auth';
+import { signIn, signUp, signOut, confirmSignUp, fetchAuthSession, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 
 // Configure Amplify with Cognito settings from env
 Amplify.configure({
@@ -51,7 +51,11 @@ export async function getSession() {
 export async function getUser() {
   try {
     const user = await getCurrentUser();
-    return user;
+    const attributes = await fetchUserAttributes();
+    const displayName = attributes.name || attributes.given_name || attributes.preferred_username
+      || (attributes.email ? attributes.email.split('@')[0] : null)
+      || user.username;
+    return { ...user, name: displayName, email: attributes.email };
   } catch {
     return null;
   }

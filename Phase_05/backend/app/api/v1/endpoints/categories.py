@@ -7,8 +7,9 @@ from app.services import forum_service
 router = APIRouter()
 
 @router.get("/", response_model=List[ForumCategoryResponse])
-def get_categories(db: SessionDep, skip: int = 0, limit: int = 100):
-    return forum_service.get_categories(db, skip, limit)
+def get_categories(db: SessionDep, skip: int = 0, limit: int = 100, include_archived: bool = False):
+    from app.crud import category as category_crud
+    return category_crud.get_categories(db, skip=skip, limit=limit, active_only=not include_archived)
 
 @router.post("/", response_model=ForumCategoryResponse)
 def create_category(category: ForumCategoryCreate, db: SessionDep, admin: AdminUserDep):

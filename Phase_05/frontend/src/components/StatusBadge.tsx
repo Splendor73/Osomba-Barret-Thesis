@@ -1,3 +1,5 @@
+import { useLanguage } from "../context/LanguageContext";
+
 interface StatusBadgeProps {
   status: "Answered" | "Open" | "Closed" | "FAQ" | "Forum Post";
   size?: "small" | "medium";
@@ -12,11 +14,15 @@ const statusStyles: Record<string, string> = {
 };
 
 export function StatusBadge({ status, size = "medium" }: StatusBadgeProps) {
+  const { t } = useLanguage();
   const sizeClass = size === "small" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm";
+  
+  // Map status string to i18n key
+  const i18nKey = status === "Forum Post" ? "status.forum_post" : `status.${status.toLowerCase()}`;
   
   return (
     <span className={`inline-flex items-center rounded-full ${statusStyles[status]} ${sizeClass}`}>
-      {status}
+      {t(i18nKey)}
     </span>
   );
 }

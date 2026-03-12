@@ -4,6 +4,7 @@ import { registerUser, confirmRegistration } from '../lib/auth';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { OrganicBackground } from '../components/OrganicBackground';
+import { useLanguage } from '../context/LanguageContext';
 
 export const RegisterPage = () => {
   const [name, setName] = useState('');
@@ -14,6 +15,7 @@ export const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'register' | 'confirm'>('register');
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +26,7 @@ export const RegisterPage = () => {
       await registerUser(email, password, name);
       setStep('confirm');
     } catch (err: any) {
-      setError(err.message || 'Failed to register');
+      setError(err.message || t('register.error_register'));
     } finally {
       setLoading(false);
     }
@@ -39,7 +41,7 @@ export const RegisterPage = () => {
       await confirmRegistration(email, code);
       navigate('/login');
     } catch (err: any) {
-      setError(err.message || 'Failed to verify code');
+      setError(err.message || t('register.error_verify'));
     } finally {
       setLoading(false);
     }
@@ -61,10 +63,10 @@ export const RegisterPage = () => {
           <div className="p-8 space-y-6">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900">
-                {step === 'confirm' ? 'Verify Email' : 'Create an Account'}
+                {step === 'confirm' ? t('register.verify_email') : t('register.create_account')}
               </h1>
               {step === 'register' && (
-                <p className="mt-1 text-sm text-gray-500">Join the Osomba community</p>
+                <p className="mt-1 text-sm text-gray-500">{t('register.subtitle')}</p>
               )}
             </div>
 
@@ -73,58 +75,58 @@ export const RegisterPage = () => {
             {step === 'register' ? (
               <form onSubmit={handleRegister} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                  <label className="block text-sm font-medium text-gray-700">{t('register.full_name')}</label>
                   <Input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="mt-1"
-                    placeholder="Your full name"
+                    placeholder={t('register.name_placeholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email Address</label>
+                  <label className="block text-sm font-medium text-gray-700">{t('register.email')}</label>
                   <Input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="mt-1"
-                    placeholder="you@example.com"
+                    placeholder={t('register.email_placeholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Password</label>
+                  <label className="block text-sm font-medium text-gray-700">{t('register.password')}</label>
                   <Input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="mt-1"
-                    placeholder="Create a password"
+                    placeholder={t('register.password_placeholder')}
                   />
                 </div>
                 <Button type="submit" disabled={loading} className="w-full bg-[#46BB39] hover:bg-[#3ca330] text-white">
-                  {loading ? 'Creating...' : 'Register'}
+                  {loading ? t('register.creating') : t('register.register')}
                 </Button>
               </form>
             ) : (
               <form onSubmit={handleConfirm} className="space-y-4">
-                <p className="text-sm text-gray-600 text-center">We've sent a verification code to {email}.</p>
+                <p className="text-sm text-gray-600 text-center">{t('register.verify_sent')} {email}.</p>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Verification Code</label>
+                  <label className="block text-sm font-medium text-gray-700">{t('register.verification_code')}</label>
                   <Input
                     type="text"
                     required
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     className="mt-1"
-                    placeholder="Enter 6-digit code"
+                    placeholder={t('register.code_placeholder')}
                   />
                 </div>
                 <Button type="submit" disabled={loading} className="w-full bg-[#46BB39] hover:bg-[#3ca330] text-white">
-                  {loading ? 'Verifying...' : 'Verify Email'}
+                  {loading ? t('register.verifying') : t('register.verify_email')}
                 </Button>
               </form>
             )}

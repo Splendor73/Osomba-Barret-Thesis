@@ -2,7 +2,7 @@ import Vector from "../imports/Vector";
 import Leaf from "../imports/Leaf5";
 
 interface OrganicBackgroundProps {
-  variant?: "default" | "minimal" | "alternate";
+  variant?: "default" | "minimal" | "alternate" | "dashboard";
 }
 
 export function OrganicBackground({ variant = "default" }: OrganicBackgroundProps) {
@@ -10,6 +10,20 @@ export function OrganicBackground({ variant = "default" }: OrganicBackgroundProp
     return (
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[10%] right-[5%] w-[350px] h-[350px] bg-gradient-to-br from-[#F67C01]/10 to-[#46BB39]/10 rounded-full blur-3xl" />
+      </div>
+    );
+  }
+
+  if (variant === "dashboard") {
+    return (
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-0 right-[-10%] w-[500px] h-[500px] opacity-15">
+          <Vector />
+        </div>
+        <div className="absolute bottom-[-5%] left-[300px] w-[350px] h-[350px] opacity-10">
+          <Leaf />
+        </div>
+        <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-gradient-to-br from-[#F67C01]/10 to-[#46BB39]/10 rounded-full blur-3xl" />
       </div>
     );
   }

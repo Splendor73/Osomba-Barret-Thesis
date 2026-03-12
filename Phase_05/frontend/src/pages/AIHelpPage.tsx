@@ -18,13 +18,6 @@ interface SuggestionCard {
   confidence: number;
 }
 
-const exampleQuestions = [
-  "How do I pay with MPESA?",
-  "Why is my listing not showing?",
-  "How do I report a scam?",
-  "How long does delivery take?",
-];
-
 export function AIHelpPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -35,6 +28,13 @@ export function AIHelpPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { language, t } = useLanguage();
+
+  const exampleQuestions = [
+    t('ai.example_q1'),
+    t('ai.example_q2'),
+    t('ai.example_q3'),
+    t('ai.example_q4'),
+  ];
 
   useEffect(() => {
     const queryParam = searchParams.get("q");
@@ -53,12 +53,16 @@ export function AIHelpPage() {
     setError(null);
 
     try {
-      const response = await api.post('/support/ai/suggest', { query: q, language });
+      const response = await api.post('/support/ai/suggest', { 
+        query: q, 
+        language,
+        terms_version: "2026-q1-v1"
+      });
       setResults(response.data.suggestions || []);
       setSessionId(response.data.session_id || null);
     } catch (err) {
       console.error("Failed to fetch AI suggestions:", err);
-      setError("Failed to fetch suggestions. Please try again or post to the forum.");
+      setError(t('ai.search_error'));
       setResults([]);
     } finally {
       setSearching(false);
@@ -101,7 +105,7 @@ export function AIHelpPage() {
           className="flex items-center gap-2 text-gray-700 hover:text-[#F67C01] mb-8 transition-colors font-medium"
         >
           <ArrowLeft className="w-5 h-5" />
-          Back to Forum
+          {t('buttons.back_to_forum')}
         </button>
 
         <div className="text-center mb-12">
@@ -137,7 +141,7 @@ export function AIHelpPage() {
 
           {!hasSearched && (
             <div className="mb-4">
-              <p className="text-sm text-gray-500 mb-2 font-medium">Try asking:</p>
+              <p className="text-sm text-gray-500 mb-2 font-medium">{t('ai.try_asking')}</p>
               <div className="flex flex-wrap gap-2">
                 {exampleQuestions.map((example, idx) => (
                   <button
@@ -166,7 +170,7 @@ export function AIHelpPage() {
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
           >
-            {searching ? "Searching..." : "Search with AI"}
+            {searching ? t('ai.searching') : t('ai.search_with_ai')}
           </button>
         </div>
 
@@ -174,24 +178,25 @@ export function AIHelpPage() {
           <div>
             <div className="bg-white rounded-xl p-4 mb-6 border border-gray-100 shadow-sm">
               <p className="text-gray-700">
-                <span className="text-gray-500 font-medium">Your question:</span> <span className="font-medium">{query}</span>
+                <span className="text-gray-500 font-medium">{t('ai.your_question')}</span> <span className="font-medium">{query}</span>
               </p>
             </div>
 
             {searching ? (
               <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
                 <LoadingSpinner />
-                <p className="mt-4 text-gray-600">Searching our knowledge base...</p>
+                <p className="mt-4 text-gray-600">{t('ai.searching_kb')}</p>
               </div>
             ) : results.length > 0 ? (
               <div>
                 <h2 className="mb-6 text-gray-900">
-                  Found {results.length} relevant {results.length === 1 ? 'answer' : 'answers'}
+                  {t('ai.found_results').replace('{count}', String(results.length)).replace('{noun}', results.length === 1 ? 'answer' : 'answers')}
                 </h2>
                 <div className="space-y-4">
                   {results.map((result) => {
                     const stars = getStars(result.confidence);
                     const lowConfidence = isLowConfidence(result.confidence);
+                    const sourceKey = result.source === 'FAQ' ? 'status.faq' : 'status.forum_post';
 
                     return (
                       <div
@@ -218,25 +223,24 @@ export function AIHelpPage() {
                               ))}
                             </div>
                             <p className="text-xs text-gray-500 font-medium">
-                              {result.confidence}%{lowConfidence && " match"}
+                              {result.confidence}{t('ai.match')}
                             </p>
                           </div>
 
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              {/* Source Badge with proper text coloring based on source */}
                               <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
-                                result.source === 'FAQ' 
+                                result.source === 'FAQ'
                                   ? 'bg-blue-50 text-blue-700 border-blue-200'
                                   : 'bg-purple-50 text-purple-700 border-purple-200'
                               }`}>
-                                {result.source}
+                                {t(sourceKey)}
                               </span>
-                              
+
                               {lowConfidence && (
                                 <span className="flex items-center gap-1 text-xs text-gray-500">
                                   <AlertCircle className="w-3 h-3" />
-                                  Low confidence match
+                                  {t('ai.low_confidence')}
                                 </span>
                               )}
                             </div>
@@ -253,7 +257,7 @@ export function AIHelpPage() {
                                 }}
                                 className="text-sm text-[#F67C01] hover:text-[#d66901] font-medium transition-colors"
                               >
-                                View full answer →
+                                {t('ai.view_full')}
                               </button>
                             </div>
                           </div>
@@ -269,7 +273,7 @@ export function AIHelpPage() {
                     onClick={handleEscalate}
                     className="px-6 py-3 bg-[#F67C01] text-white rounded-lg hover:bg-[#d56b01] transition-colors shadow-sm"
                   >
-                    Post to Forum
+                    {t('buttons.post_to_forum')}
                   </button>
                 </div>
               </div>
@@ -277,12 +281,12 @@ export function AIHelpPage() {
               <div className="bg-white rounded-lg shadow-sm p-12 text-center">
                 <div className="text-6xl mb-4">🔍</div>
                 <h2 className="mb-3 text-gray-900">{t('ai.no_results')}</h2>
-                <p className="text-gray-600 mb-6">Our support agents can help you directly</p>
+                <p className="text-gray-600 mb-6">{t('ai.support_help')}</p>
                 <button
                   onClick={handleEscalate}
                   className="px-6 py-3 bg-[#F67C01] text-white rounded-lg hover:bg-[#d56b01] transition-colors shadow-sm"
                 >
-                  Post to Forum
+                  {t('buttons.post_to_forum')}
                 </button>
               </div>
             )}
@@ -298,7 +302,7 @@ export function AIHelpPage() {
                   }}
                   className="text-gray-700 font-medium hover:text-[#F67C01] transition-colors"
                 >
-                  New Search
+                  {t('buttons.new_search')}
                 </button>
               </div>
             )}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { CheckCircle, ChevronLeft, Bookmark, Lock, Unlock, Send, X, User } from "lucide-react";
+import { CheckCircle, ChevronLeft, Bookmark, BookmarkX, Lock, Unlock, Send, X, User } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { StatusBadge } from "../components/StatusBadge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -8,6 +8,7 @@ import { LoadingSpinner } from "../components/LoadingSpinner";
 import { OrganicBackground } from "../components/OrganicBackground";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import api from "../lib/api";
 
 type Topic = {
@@ -60,6 +61,7 @@ export function ThreadDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, user, role } = useAuth();
+  const { language, t } = useLanguage();
 
   const [topic, setTopic] = useState<Topic | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -67,7 +69,6 @@ export function ThreadDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [language, setLanguage] = useState("EN");
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [submittingReply, setSubmittingReply] = useState(false);
@@ -82,9 +83,9 @@ export function ThreadDetailPage() {
     setError("");
     try {
       const [topicRes, postsRes, relatedRes] = await Promise.all([
-        api.get(`/support/topics/${id}`),
-        api.get(`/support/topics/${id}/posts`),
-        api.get('/support/topics?limit=5')
+        api.get(`/support/topics/${id}?lang=${language}`),
+        api.get(`/support/topics/${id}/posts?lang=${language}`),
+        api.get(`/support/topics?limit=5&lang=${language}`)
       ]);
       setTopic(topicRes.data);
       setPosts(postsRes.data);
@@ -98,10 +99,23 @@ export function ThreadDetailPage() {
           console.error("Failed to fetch context", e);
         }
       }
+
+      // Check if the official answer has already been converted to FAQ
+      if (role === 'admin') {
+        const accepted = postsRes.data.find((p: Post) => p.is_accepted_answer);
+        if (accepted) {
+          try {
+            const faqRes = await api.get(`/support/topics/${id}/faq-status/${accepted.id}`);
+            setBookmarked(faqRes.data.is_faq);
+          } catch (e) {
+            console.error("Failed to check FAQ status", e);
+          }
+        }
+      }
     } catch (err: any) {
       console.error("Error fetching thread:", err);
       const detail = err.response?.data?.detail || err.message || "Unknown error";
-      setError(`Error loading thread: ${detail}`);
+      setError(`${t('thread.load_error')}: ${detail}`);
     } finally {
       setIsLoading(false);
     }
@@ -110,8 +124,9 @@ export function ThreadDetailPage() {
   useEffect(() => {
     if (id) {
       fetchThreadData();
+      window.scrollTo(0, 0);
     }
-  }, [id]);
+  }, [id, language]);
 
   const handleSubmitReply = async () => {
     if (!replyText.trim()) return;
@@ -125,10 +140,10 @@ export function ThreadDetailPage() {
       setShowReplyBox(false);
       setReplyText("");
       setIsOfficialAnswer(false);
-      fetchThreadData(); // Refresh to show new post
+      fetchThreadData();
     } catch (err) {
       console.error("Failed to post reply:", err);
-      setToast({ message: "Failed to post reply. Please try again.", type: "error" });
+      setToast({ message: t('thread.reply_error'), type: "error" });
     } finally {
       setSubmittingReply(false);
     }
@@ -138,10 +153,10 @@ export function ThreadDetailPage() {
     try {
       await api.post(`/support/topics/${id}/lock`, { is_locked: true });
       setShowActionsMenu(false);
-      setToast({ message: "Thread locked successfully!", type: "success" });
+      setToast({ message: t('thread.lock_success'), type: "success" });
       fetchThreadData();
     } catch (err) {
-      setToast({ message: "Failed to lock thread.", type: "error" });
+      setToast({ message: t('thread.lock_error'), type: "error" });
     }
   };
 
@@ -149,30 +164,44 @@ export function ThreadDetailPage() {
     try {
       await api.post(`/support/topics/${id}/lock`, { is_locked: false });
       setShowActionsMenu(false);
-      setToast({ message: "Thread unlocked successfully!", type: "success" });
+      setToast({ message: t('thread.unlock_success'), type: "success" });
       fetchThreadData();
     } catch (err) {
-      setToast({ message: "Failed to unlock thread.", type: "error" });
+      setToast({ message: t('thread.unlock_error'), type: "error" });
     }
   };
 
   const handleBookmarkFAQ = async () => {
     const acceptedPost = posts.find(p => p.is_accepted_answer);
     if (!acceptedPost) {
-      setToast({ message: "Only answered threads can be converted to FAQ.", type: "error" });
+      setToast({ message: t('thread.convert_requires_answer'), type: "error" });
       return;
     }
-    
+
     try {
-      await api.post(`/support/topics/${id}/convert-to-faq`, { 
+      await api.post(`/support/topics/${id}/convert-to-faq`, {
         post_id: acceptedPost.id,
-        question: topic?.title 
+        question: topic?.title
       });
       setBookmarked(true);
       setShowActionsMenu(false);
-      setToast({ message: "Thread converted to FAQ successfully!", type: "success" });
+      setToast({ message: t('thread.convert_success'), type: "success" });
     } catch (err) {
-      setToast({ message: "Failed to convert to FAQ.", type: "error" });
+      setToast({ message: t('thread.convert_error'), type: "error" });
+    }
+  };
+
+  const handleUndoFAQ = async () => {
+    const acceptedPost = posts.find(p => p.is_accepted_answer);
+    if (!acceptedPost) return;
+
+    try {
+      await api.delete(`/support/topics/${id}/undo-faq/${acceptedPost.id}`);
+      setBookmarked(false);
+      setShowActionsMenu(false);
+      setToast({ message: t('thread.undo_faq_success'), type: "success" });
+    } catch (err) {
+      setToast({ message: t('thread.undo_faq_error'), type: "error" });
     }
   };
 
@@ -193,7 +222,7 @@ export function ThreadDetailPage() {
       <div className="min-h-screen bg-gray-50 p-8">
         <ErrorMessage message={error || "Thread not found"} />
         <button onClick={() => navigate("/")} className="mt-4 text-[#F67C01] hover:underline">
-          Go back home
+          {t('buttons.go_back_home')}
         </button>
       </div>
     );
@@ -221,7 +250,7 @@ export function ThreadDetailPage() {
           className="flex items-center gap-2 text-gray-700 hover:text-[#F67C01] mb-6 transition-colors font-medium"
         >
           <ChevronLeft className="w-5 h-5" />
-          Back to Forum
+          {t('buttons.back_to_forum')}
         </button>
 
         <div className="flex gap-8">
@@ -260,7 +289,7 @@ export function ThreadDetailPage() {
                 <div className="flex items-center gap-2 mb-4">
                   <CheckCircle className="w-5 h-5 text-[#46BB39]" />
                   <span className="px-3 py-1 bg-[#46BB39] text-white rounded-full text-sm shadow-sm font-medium">
-                    Official Answer
+                    {t('thread.official_answer')}
                   </span>
                 </div>
 
@@ -280,7 +309,7 @@ export function ThreadDetailPage() {
                   <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{officialAnswer.content}</p>
                 </div>
 
-                <p className="text-sm text-gray-500 mb-6">Posted {formatDate(officialAnswer.created_at)}</p>
+                <p className="text-sm text-gray-500 mb-6">{t('thread.posted')} {formatDate(officialAnswer.created_at)}</p>
               </div>
             )}
 
@@ -312,12 +341,12 @@ export function ThreadDetailPage() {
                       className="flex items-center gap-2 px-6 py-3 bg-[#F67C01] text-white rounded-lg hover:bg-[#d56b01] transition-colors shadow-sm"
                     >
                       <Send className="w-4 h-4" />
-                      Write a Reply
+                      {t('thread.write_reply')}
                     </button>
                   ) : (
                     <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-gray-900">{isOfficialAnswer ? "Post Official Answer" : "Post a Reply"}</h3>
+                        <h3 className="text-gray-900">{isOfficialAnswer ? t('thread.post_official_answer') : t('thread.post_reply')}</h3>
                         <button
                           onClick={() => setShowReplyBox(false)}
                           className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -329,7 +358,7 @@ export function ThreadDetailPage() {
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
                         className="w-full p-3 border border-gray-300 rounded-lg mb-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-[#F67C01]"
-                        placeholder="Type your reply here..."
+                        placeholder={t('thread.reply_placeholder')}
                       />
                       {(role === 'agent' || role === 'admin') && !officialAnswer && (
                         <label className="flex items-center gap-2 mb-4 cursor-pointer select-none">
@@ -339,7 +368,7 @@ export function ThreadDetailPage() {
                             onChange={(e) => setIsOfficialAnswer(e.target.checked)}
                             className="w-4 h-4 accent-[#46BB39]"
                           />
-                          <span className="text-sm font-medium text-gray-700">Mark as Official Answer</span>
+                          <span className="text-sm font-medium text-gray-700">{t('thread.mark_official')}</span>
                           <CheckCircle className={`w-4 h-4 ${isOfficialAnswer ? 'text-[#46BB39]' : 'text-gray-300'}`} />
                         </label>
                       )}
@@ -356,12 +385,12 @@ export function ThreadDetailPage() {
                           {submittingReply ? (
                             <>
                               <LoadingSpinner size="small" />
-                              Posting...
+                              {t('thread.posting')}
                             </>
                           ) : (
                             <>
                               <Send className="w-4 h-4" />
-                              {isOfficialAnswer ? "Submit Official Answer" : "Post Reply"}
+                              {isOfficialAnswer ? t('thread.submit_official') : t('thread.submit_reply')}
                             </>
                           )}
                         </button>
@@ -369,7 +398,7 @@ export function ThreadDetailPage() {
                           onClick={() => setShowReplyBox(false)}
                           className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                         >
-                          Cancel
+                          {t('buttons.cancel')}
                         </button>
                       </div>
                     </div>
@@ -377,20 +406,20 @@ export function ThreadDetailPage() {
                 </>
               ) : (
                 <div className="bg-gray-100 rounded-lg p-6 text-center">
-                  <p className="text-gray-700 mb-4">Log in to participate in this discussion.</p>
+                  <p className="text-gray-700 mb-4">{t('thread.login_to_reply')}</p>
                   <button
                     onClick={() => navigate('/login')}
                     className="px-6 py-2 bg-[#F67C01] text-white rounded-lg hover:bg-[#e06d00] transition-colors"
                   >
-                    Log In
+                    {t('nav.log_in')}
                   </button>
                 </div>
               )
             ) : (
               <div className="bg-gray-100 rounded-lg p-6 text-center flex flex-col items-center justify-center">
                 <Lock className="w-8 h-8 text-gray-400 mb-2" />
-                <p className="text-gray-700 font-medium">This thread has been locked.</p>
-                <p className="text-gray-500 text-sm mt-1">No new replies can be added.</p>
+                <p className="text-gray-700 font-medium">{t('thread.thread_locked')}</p>
+                <p className="text-gray-500 text-sm mt-1">{t('thread.no_new_replies')}</p>
               </div>
             )}
 
@@ -399,7 +428,7 @@ export function ThreadDetailPage() {
               <div className="mt-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
                 <h4 className="mb-4 text-gray-900 font-semibold flex items-center gap-2">
                   <Lock className="w-4 h-4 text-gray-500" />
-                  Agent Actions
+                  {t('thread.agent_actions')}
                 </h4>
                 <div className="flex flex-wrap items-center gap-3">
                   {!topic.is_locked ? (
@@ -408,7 +437,7 @@ export function ThreadDetailPage() {
                       className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <Lock className="w-4 h-4" />
-                      Lock Thread
+                      {t('thread.lock_thread')}
                     </button>
                   ) : (
                     <button
@@ -416,17 +445,26 @@ export function ThreadDetailPage() {
                       className="flex items-center gap-2 px-4 py-2 bg-[#46BB39] text-white rounded-lg hover:bg-[#3ca330] transition-colors"
                     >
                       <Unlock className="w-4 h-4" />
-                      Unlock Thread
+                      {t('thread.unlock_thread')}
                     </button>
                   )}
 
-                  {officialAnswer && role === 'admin' && (
+                  {officialAnswer && role === 'admin' && !bookmarked && (
                     <button
                       onClick={handleBookmarkFAQ}
                       className="flex items-center gap-2 px-4 py-2 bg-[#F67C01] text-white rounded-lg hover:bg-[#e06d00] transition-colors"
                     >
                       <Bookmark className="w-4 h-4" />
-                      Convert to FAQ
+                      {t('thread.convert_faq')}
+                    </button>
+                  )}
+                  {officialAnswer && role === 'admin' && bookmarked && (
+                    <button
+                      onClick={handleUndoFAQ}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                    >
+                      <BookmarkX className="w-4 h-4" />
+                      {t('thread.undo_faq')}
                     </button>
                   )}
                 </div>
@@ -439,43 +477,43 @@ export function ThreadDetailPage() {
               <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <h3 className="mb-4 text-gray-900 font-medium border-b pb-2 flex items-center gap-2">
                   <User className="w-5 h-5 text-gray-500" />
-                  Customer Context
+                  {t('thread.customer_context')}
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Customer Info</p>
+                    <p className="text-sm text-gray-500 mb-1">{t('thread.customer_info')}</p>
                     <p className="text-gray-900 font-medium">{context.full_name}</p>
-                    <p className="text-sm text-gray-600">{context.country} • Member since {context.member_since}</p>
+                    <p className="text-sm text-gray-600">{context.country} • {t('thread.member_since')} {context.member_since}</p>
                   </div>
-                  
+
                   <div className="flex items-center gap-4">
                     <div className="flex-1 bg-gray-50 p-3 rounded-lg border border-gray-100 text-center">
                       <p className="text-2xl font-bold text-gray-900">{context.total_orders}</p>
-                      <p className="text-xs text-gray-500 uppercase font-medium">Orders</p>
+                      <p className="text-xs text-gray-500 uppercase font-medium">{t('thread.orders')}</p>
                     </div>
                     {context.failed_payments > 0 && (
                       <div className="flex-1 bg-red-50 p-3 rounded-lg border border-red-100 text-center">
                         <p className="text-2xl font-bold text-red-600">{context.failed_payments}</p>
-                        <p className="text-xs text-red-600 uppercase font-medium">Failed Pmt</p>
+                        <p className="text-xs text-red-600 uppercase font-medium">{t('thread.failed_pmt')}</p>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <p className="text-sm text-gray-500 mb-2">Past Interactions</p>
+                    <p className="text-sm text-gray-500 mb-2">{t('thread.past_interactions')}</p>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-700">Forum Posts</span>
+                      <span className="text-gray-700">{t('thread.forum_posts')}</span>
                       <span className="font-medium bg-gray-100 px-2 rounded-full">{context.past_forum_posts}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm mt-1">
-                      <span className="text-gray-700">Resolved</span>
+                      <span className="text-gray-700">{t('thread.resolved')}</span>
                       <span className="font-medium bg-green-100 text-green-700 px-2 rounded-full">{context.past_resolved_posts}</span>
                     </div>
                   </div>
 
                   {context.recent_orders.length > 0 && (
                     <div className="pt-2 border-t">
-                      <p className="text-sm text-gray-500 mb-2">Recent Orders</p>
+                      <p className="text-sm text-gray-500 mb-2">{t('thread.recent_orders')}</p>
                       {context.recent_orders.map((order: any) => (
                         <div key={order.order_id} className="text-sm mb-2 pb-2 border-b last:border-0 last:mb-0 last:pb-0">
                           <div className="flex justify-between items-center mb-1">
@@ -483,7 +521,7 @@ export function ThreadDetailPage() {
                             <span className="font-medium text-gray-900">${order.total_cost.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between text-xs text-gray-500">
-                            <span>{order.items_count} items • {order.shipping_status}</span>
+                            <span>{order.items_count} {t('thread.items')} • {order.shipping_status}</span>
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${order.payment_status === 'FAILED' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                               {order.payment_status}
                             </span>
@@ -497,7 +535,7 @@ export function ThreadDetailPage() {
             )}
 
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-              <h3 className="mb-4 text-gray-900 font-medium">Related Questions</h3>
+              <h3 className="mb-4 text-gray-900 font-medium">{t('thread.related_questions')}</h3>
               <div className="space-y-4">
                 {relatedThreads.map((thread) => (
                   <button
@@ -512,7 +550,7 @@ export function ThreadDetailPage() {
                   </button>
                 ))}
                 {relatedThreads.length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-4">No related threads found.</p>
+                  <p className="text-sm text-gray-500 text-center py-4">{t('thread.no_related')}</p>
                 )}
               </div>
             </div>

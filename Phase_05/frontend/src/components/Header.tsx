@@ -19,7 +19,6 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
   return (
     <>
       <header className="bg-white/95 backdrop-blur-lg shadow-md sticky top-0 z-50 border-b border-gray-100">
-        {/* Subtle organic accent at top */}
         <div className="absolute top-0 right-0 w-64 h-32 opacity-10 pointer-events-none overflow-hidden">
           <div className="absolute -top-8 -right-8 scale-[0.3]">
             <Vector />
@@ -28,7 +27,6 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            {/* Logo Section */}
             <div className="flex items-center gap-4">
               <button
                 className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -41,42 +39,37 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                 )}
               </button>
               <a href="/" className="flex items-center gap-3 group ml-17">
-                <img
-                  src="/osomba-logo.png"
-                  alt="Osomba"
-                  className="h-30 w-auto"
-                />
+                <img src="/osomba-logo.png" alt="Osomba" className="h-30 w-auto" />
               </a>
             </div>
 
-            {/* Right Actions */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
                 className="hidden sm:flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-[#46BB39] hover:bg-green-50 rounded-lg transition-colors font-medium border border-gray-100"
-                title="Toggle Language"
+                title={t('nav.toggle_language')}
               >
                 <Globe className="w-4 h-4" />
                 <span className="uppercase text-xs">{language}</span>
               </button>
               {(role === 'agent' || role === 'admin') && (
-                <button 
+                <button
                   onClick={() => navigate('/agent-dashboard')}
                   className="hidden sm:flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-[#46BB39] hover:bg-green-50 rounded-lg transition-colors font-medium"
-                  title="Agent Dashboard"
+                  title={t('nav.agent_dashboard')}
                 >
                   <BarChart3 className="w-4 h-4" />
-                  <span>Agent</span>
+                  <span>{t('nav.agent')}</span>
                 </button>
               )}
               {role === 'admin' && (
-                <button 
+                <button
                   onClick={() => navigate('/admin/analytics')}
                   className="hidden sm:flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-[#F67C01] hover:bg-orange-50 rounded-lg transition-colors font-medium"
-                  title="Admin Dashboard"
+                  title={t('nav.admin_dashboard')}
                 >
                   <Shield className="w-4 h-4" />
-                  <span>Admin</span>
+                  <span>{t('nav.admin')}</span>
                 </button>
               )}
               {isAuthenticated ? (
@@ -86,23 +79,23 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                       {user?.name || user?.username || 'User'}
                     </span>
                     <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 capitalize border border-gray-200">
-                      {role || 'Customer'}
+                      {role || t('users.customer')}
                     </span>
                   </div>
-                  <button 
+                  <button
                     onClick={() => navigate('/settings')}
                     className="flex items-center justify-center w-11 h-11 bg-white border border-gray-200 text-gray-600 rounded-full hover:shadow-md hover:bg-gray-50 transition-all hover:scale-105"
-                    title="Settings"
+                    title={t('nav.settings')}
                   >
                     <Settings className="w-5 h-5 text-gray-600" />
                   </button>
-                  <button 
+                  <button
                     onClick={async () => {
                       await logout();
                       navigate('/');
                     }}
                     className="flex items-center justify-center w-11 h-11 bg-white border border-gray-200 text-gray-600 rounded-full hover:shadow-md hover:bg-gray-50 transition-all hover:scale-105"
-                    title="Sign Out"
+                    title={t('nav.sign_out')}
                   >
                     <LogOut className="w-5 h-5 text-gray-600" />
                   </button>
@@ -110,7 +103,7 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
               ) : (
                 <Link to="/login" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F67C01] to-[#46BB39] text-white rounded-lg transition-transform hover:scale-105 font-medium shadow-md">
                     <LogIn className="w-4 h-4" />
-                    <span>Login</span>
+                    <span>{t('nav.login')}</span>
                   </Link>
               )}
             </div>
@@ -124,10 +117,10 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
               {isAuthenticated && (
                 <div className="mb-4 pb-4 border-b border-gray-100 px-4">
                   <p className="font-medium text-gray-900">{user?.name || user?.username || 'User'}</p>
-                  <p className="text-sm text-gray-500 capitalize">{role || 'Customer'}</p>
+                  <p className="text-sm text-gray-500 capitalize">{role || t('users.customer')}</p>
                 </div>
               )}
-              
+
               <button
                 onClick={() => {
                   setLanguage(language === 'en' ? 'fr' : 'en');
@@ -136,57 +129,44 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                 className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-[#46BB39] hover:bg-green-50 rounded-lg transition-all font-medium"
               >
                 <Globe className="w-4 h-4" />
-                <span>Language: <span className="uppercase">{language}</span></span>
+                <span>{t('nav.language')}: <span className="uppercase">{language}</span></span>
               </button>
-              
+
               {(role === 'agent' || role === 'admin') && (
                 <button
-                  onClick={() => {
-                    navigate('/agent-dashboard');
-                    setMobileMenuOpen(false);
-                  }}
+                  onClick={() => { navigate('/agent-dashboard'); setMobileMenuOpen(false); }}
                   className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-[#46BB39] hover:bg-green-50 rounded-lg transition-all font-medium"
                 >
                   <BarChart3 className="w-4 h-4 text-[#46BB39]" />
-                  <span>Agent Dashboard</span>
+                  <span>{t('nav.agent_dashboard')}</span>
                 </button>
               )}
               {role === 'admin' && (
                 <button
-                  onClick={() => {
-                    navigate('/admin/analytics');
-                    setMobileMenuOpen(false);
-                  }}
+                  onClick={() => { navigate('/admin/analytics'); setMobileMenuOpen(false); }}
                   className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-[#F67C01] hover:bg-orange-50 rounded-lg transition-all font-medium"
                 >
                   <Shield className="w-4 h-4 text-[#F67C01]" />
-                  <span>Admin Dashboard</span>
+                  <span>{t('nav.admin_dashboard')}</span>
                 </button>
               )}
-              
+
               <div className="pt-2 mt-2 border-t border-gray-100">
                 {isAuthenticated ? (
                   <>
                     <button
-                      onClick={() => {
-                        navigate('/settings');
-                        setMobileMenuOpen(false);
-                      }}
+                      onClick={() => { navigate('/settings'); setMobileMenuOpen(false); }}
                       className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition-all font-medium"
                     >
                       <Settings className="w-4 h-4" />
-                      <span>Settings</span>
+                      <span>{t('nav.settings')}</span>
                     </button>
                     <button
-                      onClick={async () => {
-                        await logout();
-                        navigate('/');
-                        setMobileMenuOpen(false);
-                      }}
+                      onClick={async () => { await logout(); navigate('/'); setMobileMenuOpen(false); }}
                       className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all font-medium"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
+                      <span>{t('nav.sign_out')}</span>
                     </button>
                   </>
                 ) : (
@@ -195,7 +175,7 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                       className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition-all font-medium"
                     >
                       <LogIn className="w-4 h-4" />
-                      <span>Log In</span>
+                      <span>{t('nav.log_in')}</span>
                     </button>
                 )}
               </div>

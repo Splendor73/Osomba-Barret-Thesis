@@ -6,8 +6,11 @@ from app.schemas.support import ForumCategoryCreate, ForumCategoryUpdate
 def get_category(db: Session, category_id: int):
     return db.query(ForumCategory).filter(ForumCategory.id == category_id).first()
 
-def get_categories(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(ForumCategory).offset(skip).limit(limit).all()
+def get_categories(db: Session, skip: int = 0, limit: int = 100, active_only: bool = True):
+    q = db.query(ForumCategory)
+    if active_only:
+        q = q.filter(ForumCategory.is_active == True)
+    return q.offset(skip).limit(limit).all()
 
 def create_category(db: Session, category: ForumCategoryCreate):
     db_category = ForumCategory(**category.model_dump())

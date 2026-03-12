@@ -19,7 +19,7 @@ export function PostQuestionPage() {
   const location = useLocation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoadingCats, setIsLoadingCats] = useState(true);
-  
+
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -29,7 +29,6 @@ export function PostQuestionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Check for prefill query parameter
     const searchParams = new URLSearchParams(location.search);
     const q = searchParams.get("q");
     if (q) {
@@ -53,19 +52,19 @@ export function PostQuestionPage() {
     const newErrors: Record<string, string> = {};
 
     if (!category) {
-      newErrors.category = "Please select a category";
+      newErrors.category = t('post.error_category');
     }
     if (title.length < 10) {
-      newErrors.title = "Title must be at least 10 characters";
+      newErrors.title = t('post.error_title_min');
     }
     if (title.length > 200) {
-      newErrors.title = "Title must be less than 200 characters";
+      newErrors.title = t('post.error_title_max');
     }
     if (body.length < 20) {
-      newErrors.body = "Please provide more details (at least 20 characters)";
+      newErrors.body = t('post.error_body_min');
     }
     if (body.length > 5000) {
-      newErrors.body = "Description is too long (maximum 5000 characters)";
+      newErrors.body = t('post.error_body_max');
     }
 
     setErrors(newErrors);
@@ -80,14 +79,15 @@ export function PostQuestionPage() {
           title,
           content: body,
           category_id: parseInt(category, 10),
-          language
+          language,
+          terms_version: "2026-q1-v1"
         });
         setSubmitted(true);
         setTimeout(() => {
           navigate(`/thread/${res.data.id}`);
         }, 2000);
       } catch (err: any) {
-        setErrors({ submit: err.response?.data?.detail || "Failed to post question. Please try again." });
+        setErrors({ submit: err.response?.data?.detail || t('post.error_submit') });
       } finally {
         setIsSubmitting(false);
       }
@@ -98,31 +98,28 @@ export function PostQuestionPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F67C01] via-[#F67C01] to-[#46BB39] flex items-center justify-center relative">
-        {/* Organic decorative shapes */}
+      <div className="min-h-screen bg-[#F67C01] flex items-center justify-center relative">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[40%] bg-[#21825C]/20 rounded-full blur-3xl" />
           <div className="absolute bottom-[-10%] left-[-5%] w-[50%] h-[35%] bg-[#4E8149]/20 rounded-full blur-3xl" />
         </div>
         <div className="relative bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-8 max-w-md text-center">
           <CheckCircle className="w-16 h-16 text-[#46BB39] mx-auto mb-4" />
-          <h2 className="mb-2 text-gray-900">Question Posted Successfully!</h2>
-          <p className="text-gray-600">Redirecting you back to the forum...</p>
+          <h2 className="mb-2 text-gray-900">{t('post.success_title')}</h2>
+          <p className="text-gray-600">{t('post.success_redirect')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F67C01] via-[#F67C01] to-[#46BB39] py-8 relative">
-      {/* Organic decorative shapes */}
+    <div className="min-h-screen bg-[#F67C01] py-8 relative">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[40%] bg-[#21825C]/20 rounded-full blur-3xl" />
         <div className="absolute bottom-[-10%] left-[-5%] w-[50%] h-[35%] bg-[#4E8149]/20 rounded-full blur-3xl" />
       </div>
-      
+
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-end mb-4">
             <button
@@ -135,7 +132,6 @@ export function PostQuestionPage() {
         </div>
 
         <div className="flex gap-8">
-          {/* Main Form */}
           <div className="flex-1">
             <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
               <h1 className="mb-8 text-gray-900">{t('post.title')}</h1>
@@ -145,7 +141,6 @@ export function PostQuestionPage() {
                 </div>
               )}
 
-              {/* Category */}
               <div className="mb-6">
                 <label className="block mb-2 text-gray-900">
                   {t('post.category_label')} <span className="text-[#EF4444]">*</span>
@@ -161,7 +156,7 @@ export function PostQuestionPage() {
                     errors.category ? "border-[#EF4444]" : "border-gray-300"
                   }`}
                 >
-                  <option value="">{isLoadingCats ? 'Loading categories...' : 'Select a category...'}</option>
+                  <option value="">{isLoadingCats ? t('post.loading_categories') : t('post.select_category')}</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.icon_url || cat.icon || "📝"} {cat.name_en || cat.name}
@@ -173,7 +168,6 @@ export function PostQuestionPage() {
                 )}
               </div>
 
-              {/* Title */}
               <div className="mb-6">
                 <label className="block mb-2 text-gray-900">
                   {t('post.title_label')} <span className="text-[#EF4444]">*</span>
@@ -197,16 +191,15 @@ export function PostQuestionPage() {
                   ) : (
                     <div></div>
                   )}
-                  <p className="text-sm text-gray-500">{title.length} / 200 characters</p>
+                  <p className="text-sm text-gray-500">{title.length} {t('post.chars_title')}</p>
                 </div>
               </div>
 
-              {/* Body */}
               <div className="mb-6">
                 <label className="block mb-2 text-gray-900">
                   {t('post.body_label')} <span className="text-[#EF4444]">*</span>
                 </label>
-                
+
                 <textarea
                   value={body}
                   onChange={(e) => {
@@ -225,11 +218,10 @@ export function PostQuestionPage() {
                   ) : (
                     <div></div>
                   )}
-                  <p className="text-sm text-gray-500">{body.length} / 5000 characters</p>
+                  <p className="text-sm text-gray-500">{body.length} {t('post.chars_body')}</p>
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex items-center justify-end pt-6 border-t border-gray-200">
                 <button
                   onClick={handleSubmit}
@@ -243,41 +235,40 @@ export function PostQuestionPage() {
                   {isSubmitting ? (
                     <>
                       <LoadingSpinner size="small" />
-                      Posting...
+                      {t('post.posting')}
                     </>
                   ) : (
-                    "Post Question"
+                    t('post.post_question')
                   )}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Help Sidebar */}
           <aside className="hidden lg:block w-80">
             <div className="bg-orange-50 rounded-lg p-6 sticky top-24">
-              <h3 className="mb-4 text-gray-900">Tips for a good question</h3>
+              <h3 className="mb-4 text-gray-900">{t('post.tips_title')}</h3>
               <ul className="space-y-3 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
                   <span className="text-[#F67C01] mt-0.5">•</span>
-                  <span>Be specific and clear about your issue</span>
+                  <span>{t('post.tip_1')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#F67C01] mt-0.5">•</span>
-                  <span>Include any error messages you received</span>
+                  <span>{t('post.tip_2')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#F67C01] mt-0.5">•</span>
-                  <span>Mention what steps you've already tried</span>
+                  <span>{t('post.tip_3')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#F67C01] mt-0.5">•</span>
-                  <span>Provide relevant IDs or reference numbers</span>
+                  <span>{t('post.tip_4')}</span>
                 </li>
               </ul>
               <div className="mt-6 pt-6 border-t border-orange-200">
                 <Link to="/ai-help" className="text-[#F67C01] hover:underline text-sm">
-                  Search existing questions first →
+                  {t('post.search_first')}
                 </Link>
               </div>
             </div>

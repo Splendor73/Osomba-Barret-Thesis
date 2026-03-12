@@ -124,6 +124,7 @@ class TopicLockRequest(BaseModel):
 class ConvertToFAQRequest(BaseModel):
     post_id: int
     question: str
+    category_id: Optional[int] = None
 
 
 # --- FAQs ---
@@ -134,7 +135,8 @@ class FAQBase(BaseModel):
     is_active: bool = True
 
 class FAQCreate(FAQBase):
-    pass
+    category_id: Optional[int] = None
+    source_post_id: Optional[int] = None
 
 class FAQUpdate(BaseModel):
     question: Optional[str] = Field(None, max_length=255)
@@ -149,6 +151,7 @@ class FAQResponse(FAQBase):
     id: int
     helpful_count: int = 0
     not_helpful_count: int = 0
+    source_post_id: Optional[int] = None
     category_name: Optional[str] = None
     category_icon: Optional[str] = None
 

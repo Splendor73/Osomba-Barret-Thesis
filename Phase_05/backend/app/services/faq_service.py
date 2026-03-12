@@ -24,7 +24,7 @@ def update_faq(db: Session, faq_id: int, faq_update: FAQUpdate):
         if db_faq:
             q = faq_update.question if faq_update.question is not None else db_faq.question
             a = faq_update.answer if faq_update.answer is not None else db_faq.answer
-            embedding = get_embedding(f"{q} {a}")
+            embedding = generate_embedding(f"{q} {a}")
             
     return faq_crud.update_faq(db, faq_id=faq_id, faq_update=faq_update, embedding=embedding)
 

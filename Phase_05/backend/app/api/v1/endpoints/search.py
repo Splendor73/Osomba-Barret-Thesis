@@ -4,7 +4,7 @@ from app.services import search_service
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("")
 def semantic_search(query: str, db: SessionDep):
     """
     Public semantic search endpoint utilizing sentence-transformers and pgvector.

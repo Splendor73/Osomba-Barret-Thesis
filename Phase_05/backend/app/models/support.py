@@ -119,6 +119,7 @@ class FAQ(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     category_id = Column(Integer, ForeignKey("forum_categories.id"), nullable=True, index=True)
+    source_post_id = Column(Integer, ForeignKey("forum_posts.id"), nullable=True, index=True)
     question = Column(String, unique=True, index=True, nullable=False)
     answer = Column(Text, nullable=False)
     order_num = Column(Integer, default=0, nullable=False)
@@ -130,6 +131,7 @@ class FAQ(Base):
     embedding = Column(Vector(384), nullable=True)
 
     category = relationship("ForumCategory")
+    source_post = relationship("ForumPost")
 
 
 

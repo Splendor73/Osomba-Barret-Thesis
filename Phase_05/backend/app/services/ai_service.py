@@ -50,6 +50,57 @@ def generate_embedding(text_input: str) -> list[float]:
         # if AWS credentials aren't fully configured
         return [0.0] * 384
 
+def translate_text(text: str, target_lang: str) -> str:
+    """
+    Translates text to the target language using AWS Bedrock (Amazon Nova Micro).
+    """
+    if not text or len(text.strip()) == 0:
+        return text
+        
+    client = get_bedrock_client()
+    
+    # Using Amazon Nova Micro which is enabled and fast
+    model_id = "amazon.nova-micro-v1:0"
+    
+    # Mapping for common language codes
+    lang_map = {
+        "fr": "French",
+        "en": "English",
+        "es": "Spanish"
+    }
+    target_name = lang_map.get(target_lang.lower(), target_lang)
+    
+    prompt = f"Translate the following text into {target_name}. Only provide the translated text without any preamble or explanation:\n\n{text}"
+    
+    body = json.dumps({
+        "inferenceConfig": {
+            "max_new_tokens": 1000,
+            "temperature": 0
+        },
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"text": prompt}
+                ]
+            }
+        ]
+    })
+
+    try:
+        response = client.invoke_model(
+            body=body,
+            modelId=model_id,
+            accept="application/json",
+            contentType="application/json"
+        )
+        response_body = json.loads(response.get('body').read())
+        translated = response_body['output']['message']['content'][0]['text'].strip()
+        return translated
+    except Exception as e:
+        print(f"AI Translation failed: {e}")
+        return text
+
 def search_similar_content(db: Session, query_vector: list[float], limit: int = 5, similarity_threshold: float = 0.6):
     """
     Searches FAQs and ForumTopics for content embeddings most similar to the query vector.

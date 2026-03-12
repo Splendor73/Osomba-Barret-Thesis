@@ -8,11 +8,11 @@ const api = axios.create({
   },
 });
 
-// Attach Cognito access token to every request (if logged in)
+// Attach Cognito ID token to every request (if logged in)
 api.interceptors.request.use(async (config) => {
   try {
     const session = await fetchAuthSession();
-    const token = session.tokens?.accessToken?.toString();
+    const token = session.tokens?.idToken?.toString();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

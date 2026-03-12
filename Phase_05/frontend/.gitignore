@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Build output
+build/
+dist/
+
+# Environment variables — copy .env.example and fill in your values
+.env
+.env.local
+.env.*.local
+
+# Vite cache
+.vite/
+
+# Misc
+.DS_Store
+*.log
