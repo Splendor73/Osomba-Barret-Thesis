@@ -1,9 +1,49 @@
 # Phase 4 — Final Execution Plan
 ## Osomba Marketplace: Unified Support Forum & AI Help Board
 **Author:** Yashu Gautamkumar Patel
-**Status:** Implementation Phase — Standalone Web App
+**Status:** ✅ COMPLETE — All Steps Executed, App Fully Working
 **Thesis Defense:** March 6, 2026
-**Last Updated:** February 28, 2026
+**Last Updated:** March 2, 2026
+
+---
+
+## 0. PLANNING FOUNDATION — HOW PHASES 1–3 FED INTO THIS PLAN
+
+Phases 1 through 3 were completed in the fall semester. Each phase produced concrete artifacts that directly shaped this execution plan. Nothing in Phase 4 was invented from scratch — every decision below traces back to a prior phase.
+
+### Phase_01 — Requirements & Architecture
+**Artifacts:** `Phase_01/01_System_Architecture.md`, `Phase_01/02_Database_Schema.md`, `Phase_01/03_API_Endpoints.md`, `Phase_01/04_Requirements_Document.md`, `Phase_01/Report_1.md`
+
+| Artifact | What it defined | Where it landed in Phase 5 |
+|---|---|---|
+| Requirements Document | Three user roles (Customer, Agent, Admin), six support categories (Payments, Listings, Safety, Disputes, Account, Delivery), scope boundaries (no live chat, no video tutorials) | `app/models/support.py` — ForumCategory seeded with those exact six categories; role middleware in `app/api/dependencies.py` |
+| Database Schema | Five core tables: `forum_categories`, `forum_topics`, `forum_posts`, `faqs`, `ai_query_logs`; 384-dim vector embedding columns on topics and FAQs | `app/models/support.py` — exact schema as designed; pgvector extension on Amazon RDS |
+| API Endpoints | Full route map: `/forum`, `/faq`, `/ai`, `/search`, `/admin`, `/categories` | `app/api/v1/endpoints/` — one file per route group, matching Phase_01 spec |
+| System Architecture | Four-layer pattern: Endpoints → Services → CRUD → Models | Maintained throughout `Phase_05/backend/` directory structure |
+
+### Phase_02 — UI/UX Design & User Flows
+**Artifacts:** `Phase_02/UI-UX/Barret_theses_2.0/` (Osomba 2.0 theme), `Phase_02/User_flow/mmd_files/` (four flow diagrams), `Phase_02/Report_2.md`
+
+| Artifact | What it defined | Where it landed in Phase 5 |
+|---|---|---|
+| Figma / Barret_theses_2.0 components | Osomba brand colors (orange #F67C01, green #46BB39), OrganicBackground SVG shapes, redesigned Header, Sidebar, all 9 page layouts | Copied directly into `Phase_05/frontend/src/` as the starting point for Step 1 |
+| `customer_flow.mmd` | Login → Search → Post Question → View Thread → FAQ voting | Wired in Steps 4 and 5 of this plan |
+| `agent_flow.mmd` | Agent Dashboard → Open Thread → Official Answer → Lock → Convert to FAQ | Wired in Step 6 of this plan |
+| `admin_flow.mmd` | Analytics Dashboard → Category Management → User Role Management | Wired in Step 7 of this plan |
+| `ai_flow.mmd` | Query → Embedding → Ranked Results → Escalate to Forum | Wired in Step 5 of this plan; AiQueryLog logs every step |
+
+### Phase_03 — Research & Technology Decisions
+**Artifacts:** `Phase_03/artifacts/01_AI_Strategy.md`, `Phase_03/artifacts/02_Auth_Flow.md`, `Phase_03/artifacts/03_FAQ_Seeds.md`, `Phase_03/artifacts/04_Tech_Stack.md`, `Phase_03/Report_3.md`
+
+| Artifact | Decision made | Why | Where it landed in Phase 5 |
+|---|---|---|---|
+| AI Strategy | Use RAG retrieval only — no generative answers | Real money transactions require accurate information; chatbots hallucinate | `app/services/ai_service.py` — searches existing FAQs and forum topics, never generates new content |
+| AI Strategy | AWS Bedrock Titan Embed Text v2 (384-dim) over local sentence-transformers | No model to host, API call instead, works in production | `ai_service.generate_embedding()` calls Bedrock; pgvector stores 384-dim vectors |
+| AI Strategy | Amazon Nova Micro for EN/FR translation | On-demand only (not pre-translated), low latency, stays within AWS | `ai_service.translate_text()` called per request when `lang=fr` is passed |
+| Auth Flow | AWS Cognito with Just-In-Time (JIT) provisioning | First login auto-creates user record — no manual setup per user | `app/services/auth_service.py` — Cognito JWT → lookup by SUB → create if missing |
+| Auth Flow | Roles stored in Cognito groups (`customer`, `agent`, `admin`) | Single source of truth; role change in DB also updates Cognito | `PUT /admin/users/{id}/role` updates both DB and Cognito |
+| FAQ Seeds | 20 pre-written FAQ entries across all six categories | Seed data so AI search works from day one of the demo | `Phase_05/backend/scripts/seed_faqs.py` — seeded with real Bedrock embeddings |
+| Tech Stack | AWS SES for email (switched from SendGrid) | Keeps all infrastructure within AWS, one account, one set of keys | `app/services/email_service.py` — SES sends notification on official answer |
 
 ---
 
@@ -17,17 +57,17 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 
 | Prospectus Deliverable | Execution Step | Status |
 |---|---|---|
-| **1a.** Unified search bar (FAQ + Forum) | Step 4.1 (SearchBar), Step 5 (search endpoint) | Backend ✅ / Frontend ⬜ |
-| **1b.** Post question flow (category selection) | Step 4.3 (PostQuestionPage), Step 5 (forum endpoints) | Backend ✅ / Frontend ⬜ |
-| **1c.** Official Answer (agent locks/closes threads) | Step 6 (agent endpoints + UI) | ⬜ |
-| **1d.** Agent bookmark → FAQ conversion | Step 6 (convert-to-faq endpoint + UI) | ⬜ |
-| **1e.** Roles & Access (Customer, Agent, Admin) | Step 3 (Cognito + middleware) | Backend ✅ / Frontend ⬜ |
-| **1f.** Language scaffolding (EN/FR) | Step 9 (i18n setup) | ⬜ |
-| **2a.** AI ranked suggestions (titles + previews) | Step 5 (AI suggest endpoint) | Backend ✅ / Frontend ⬜ |
-| **2b.** Pre-filled forum escalation from AI | Step 5 (AIHelpPage → PostQuestionPage) | ⬜ |
-| **2c.** Telemetry/logging for analytics | Step 7 (AiQueryLog + admin dashboard) | ⬜ |
+| **1a.** Unified search bar (FAQ + Forum) | Step 4.1 (SearchBar), Step 5 (search endpoint) | ✅ Complete |
+| **1b.** Post question flow (category selection) | Step 4.3 (PostQuestionPage), Step 5 (forum endpoints) | ✅ Complete |
+| **1c.** Official Answer (agent locks/closes threads) | Step 6 (agent endpoints + UI) | ✅ Complete |
+| **1d.** Agent bookmark → FAQ conversion | Step 6 (convert-to-faq endpoint + UI) | ✅ Complete |
+| **1e.** Roles & Access (Customer, Agent, Admin) | Step 3 (Cognito + middleware) | ✅ Complete |
+| **1f.** Language scaffolding (EN/FR) | Step 9 (i18n setup) | ✅ Complete |
+| **2a.** AI ranked suggestions (titles + previews) | Step 5 (AI suggest endpoint) | ✅ Complete |
+| **2b.** Pre-filled forum escalation from AI | Step 5 (AIHelpPage → PostQuestionPage) | ✅ Complete |
+| **2c.** Telemetry/logging for analytics | Step 7 (AiQueryLog + admin dashboard) | ✅ Complete |
 
-### User Flows Covered (`Phase_2/User_flow/mmd_files/`)
+### User Flows Covered (`Phase_02/User_flow/mmd_files/`)
 
 | Flow | File | Covered By |
 |---|---|---|
@@ -78,8 +118,9 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 ┌──────────────────────────────────────────────────┐
 │              EXTERNAL SERVICES                     │
 │  • AWS Bedrock (Titan Embed v2 — embeddings)       │
+│  • AWS Bedrock Nova Micro (translations — EN/FR)   │
 │  • AWS Cognito (auth + roles)                      │
-│  • SendGrid (email notifications)                  │
+│  • AWS SES (email notifications)                   │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -96,7 +137,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 | Database | PostgreSQL 15 + pgvector |
 | Auth | AWS Cognito (JWT) |
 | AI/ML | AWS Bedrock (Titan Embed v2) |
-| Email | SendGrid |
+| Email | AWS SES (switched from SendGrid — keeps all infra within AWS) |
 | Deployment | AWS Amplify (frontend) + Elastic Beanstalk (backend) |
 
 ---
@@ -119,7 +160,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 - ✅ `ai_service.py` with `generate_embedding()` and `search_similar_content()`
 - ✅ Seed scripts (`seed_support.py`, `seed_phase2_data.py`)
 
-### What EXISTS in `Phase_2/UI-UX/Barret_theses_2.0/` (design reference — Osomba 2.0 Theme)
+### What EXISTS in `Phase_02/UI-UX/Barret_theses_2.0/` (design reference — Osomba 2.0 Theme)
 
 - ✅ 9 page components (all with mock/hardcoded data):
   - `HomePage.tsx`, `FAQPage.tsx`, `AIHelpPage.tsx`, `PostQuestionPage.tsx`
@@ -135,23 +176,30 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 - ✅ 10+ custom components + 45+ shadcn/ui components
 - ✅ Tailwind config, design guidelines
 
-### What is MISSING (to be built in Steps below)
+### What Was Built (All Steps Complete)
 
-- ✅ `Phase_05/frontend/` directory (copied from Figma_code + Osomba 2.0 theme applied)
-- ⬜ API client layer (`axios` calls replacing all mock data)
-- ⬜ Auth UI (login/register/logout wired to Cognito)
-- ⬜ Official Answer endpoint + mark accepted answer
-- ⬜ Convert Forum Answer → FAQ endpoint
-- ⬜ Lock/Close thread endpoint
-- ⬜ `AiQueryLog` model + telemetry logging on AI queries
-- ⬜ Admin analytics endpoints (deflection rate, top queries, post stats)
-- ⬜ Admin user management (promote customer → agent)
-- ⬜ Category update (`PUT /categories/{id}`) endpoint
-- ⬜ Email notifications (SendGrid on new official answer)
-- ⬜ EN/FR language scaffolding
-- ⬜ FAQ seed data with real embeddings
-- ⬜ "Was this helpful?" on ThreadDetailPage
-- ⬜ "Still Need Help?" → pre-filled post form from AI page
+- ✅ `Phase_05/frontend/` — full React + Vite app with Osomba 2.0 theme applied
+- ✅ API client layer — axios instance with Cognito JWT interceptor, all mock data replaced
+- ✅ Auth UI — login, register (with email verification), logout, all wired to AWS Cognito
+- ✅ Official Answer endpoint — agents mark accepted answers, green highlight in UI, email sent
+- ✅ Convert Forum Answer → FAQ — admin one-click conversion with auto-generated embedding
+- ✅ Lock/Unlock thread endpoint — agents lock threads after resolution, unlock if needed
+- ✅ `AiQueryLog` model + telemetry — every AI query logged, deflection rate computed live
+- ✅ Admin analytics endpoints — overview KPIs, posts over time, category distribution, top queries
+- ✅ Admin user management — search users, change roles with confirmation dialog
+- ✅ Category update (`PUT /categories/{id}`) — full CRUD for categories including archive/restore
+- ✅ Email notifications via AWS SES — switched from SendGrid, notifications on official answers
+- ✅ EN/FR language scaffolding — complete `en.json` + `fr.json`, live Bedrock translation on API
+- ✅ FAQ seed data with real embeddings — 20 FAQs seeded, AI search returns real results
+- ✅ FAQ voting — Helpful / Not Helpful on every FAQ article
+- ✅ "Still Need Help?" — pre-filled post form from AI page, query passed as state
+- ✅ Agent Dashboard — unanswered thread queue, urgency flags, category/date filters
+- ✅ Customer Context sidebar — agent sees customer orders, payments, past posts on thread view
+- ✅ Analytics Dashboard — charts (recharts), KPI cards, CSV export
+- ✅ Category Management page — create/edit/archive categories with emoji icons
+- ✅ User Management page — search, filter by role, role change with audit warning
+- ✅ Settings page — notification preferences, marketing opt-in
+- ✅ Responsive design — skeleton loaders, error states, toast notifications on all pages
 
 ---
 
@@ -165,14 +213,14 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 **Goal:** Create `Phase_05/frontend/` as a working React + Vite app with Osomba branding.
 
 **Tasks:**
-- [x] **1.1** Copy `Phase_2/UI-UX/Figma_code/` into `Phase_05/frontend/`
+- [x] **1.1** Copy `Phase_02/UI-UX/Figma_code/` into `Phase_05/frontend/`
 - [x] **1.2** Run `npm install` to verify it builds
 - [x] **1.3** Install additional dependencies: `axios`, `aws-amplify`, `@aws-amplify/auth`, `typescript`, `@types/react`, `@types/react-dom`
 - [x] **1.4** Create `Phase_05/frontend/.env` with `VITE_API_URL`, Cognito placeholders
 - [x] **1.5** Create `Phase_05/frontend/src/lib/api.ts` — centralized axios instance with Cognito JWT interceptor
 - [x] **1.6** Create `Phase_05/frontend/src/lib/auth.ts` — Amplify config + login/register/logout/role helpers
 - [x] **1.7** Updated `App.tsx` with routes split by access level (public / auth / agent / admin)
-- [x] **1.8** Applied Osomba 2.0 theme from `Phase_2/UI-UX/Barret_theses_2.0/`:
+- [x] **1.8** Applied Osomba 2.0 theme from `Phase_02/UI-UX/Barret_theses_2.0/`:
   - Copied `globals.css` with Osomba CSS variables (orange #F67C01, green #46BB39)
   - Copied redesigned `Header.tsx` (logo, gradient branding, floating "Ask Question" FAB)
   - Copied `OrganicBackground.tsx` with decorative SVG shapes
@@ -352,9 +400,10 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 
 #### 3.9 — Email Notification on Official Answer
 **Flow Ref:** `agent_flow.mmd` → "Thread Status: Answered, Customer Gets Email"
+**Note:** Originally planned with SendGrid. Switched to **AWS SES** during implementation to keep all infrastructure within AWS and avoid a third-party dependency.
 - [x] In the official-answer endpoint (3.2), after creating the answer:
-  - Call `email_service.send_notification()` to email the topic author
-  - Subject: "Your question has been answered on Somba Support"
+  - Call `email_service.send_notification_email()` via AWS SES to email the topic author
+  - Subject: "Your question has been answered on Osomba Support"
   - Body: link to the thread
 
 **Acceptance Criteria:**
@@ -420,19 +469,19 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 **Tasks:**
 
 #### 5.1 — AIHelpPage.tsx
-- [ ] Clean text input with minimum 10 character validation
-- [ ] On submit ("Get Help" button): `POST /ai/suggest` with `{ query, language: "en" }`
-- [ ] Show loading spinner during API call
-- [ ] Display results as cards, each showing:
+- [x] Clean text input with minimum 10 character validation
+- [x] On submit ("Get Help" button): `POST /ai/suggest` with `{ query, language: "en" }`
+- [x] Show loading spinner during API call
+- [x] Display results as cards, each showing:
   - Title
   - Snippet (first 150 chars)
   - Source badge ("FAQ" or "Forum Post")
   - Confidence score as stars (5 stars = 80-100%, 4 = 60-79%)
   - Category badge
-- [ ] If no results (or all below threshold): show "No good matches found" message
-- [ ] "Still Need Help?" button → navigate to `/post-question?title={query}&body={query}`
-- [ ] On clicking a result: navigate to `/thread/{id}` (forum) or scroll to FAQ (faq)
-- [ ] On escalation click: `POST /ai/escalate` with `{ session_id }` before navigating
+- [x] If no results (or all below threshold): show "No good matches found" message
+- [x] "Still Need Help?" button → navigate to `/post-question?title={query}&body={query}`
+- [x] On clicking a result: navigate to `/thread/{id}` (forum) or scroll to FAQ (faq)
+- [x] On escalation click: `POST /ai/escalate` with `{ session_id }` before navigating
 
 **Acceptance Criteria:**
 - Typing a question and clicking "Get Help" returns real suggestions from the database
@@ -459,7 +508,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 >
 > **Secondary lookup — by email:** An agent can also manually search by email (e.g. if a customer contacts them via other channels). This uses the existing `GET /admin/users?search=email` endpoint.
 
-- [ ] Add to `admin.py`:
+- [x] Add to `admin.py`:
   ```
   GET /admin/users/{user_id}/support-context
   ```
@@ -495,15 +544,15 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
     ```
 
 #### 6.1 — AgentDashboardPage.tsx
-- [ ] Protected route: only `agent` or `admin` role
-- [ ] On mount: `GET /forum/topics` → filter/display unanswered threads (status != "Answered")
-- [ ] Sort options: by date (newest first), by view count
-- [ ] Filter by category dropdown: `GET /categories/` → filter client-side or with query param
-- [ ] Each thread card shows: title, category, date, view count, reply count, **customer name**
-- [ ] Click → navigate to `/thread/{id}` (agent view)
+- [x] Protected route: only `agent` or `admin` role
+- [x] On mount: `GET /forum/topics` → filter/display unanswered threads (status != "Answered")
+- [x] Sort options: by date (newest first), by view count
+- [x] Filter by category dropdown: `GET /categories/` → filter client-side or with query param
+- [x] Each thread card shows: title, category, date, view count, reply count, **customer name**
+- [x] Click → navigate to `/thread/{id}` (agent view)
 
 #### 6.2 — Agent Context Panel on ThreadDetailPage.tsx
-- [ ] When agent views a thread, show a **sidebar "Customer Context" panel** on the right:
+- [x] When agent views a thread, show a **sidebar "Customer Context" panel** on the right:
   - Fetch: `GET /admin/users/{topic.user_id}/support-context`
   - Display:
     - Customer name, country, member since date
@@ -515,7 +564,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
   - Example: Customer asks "Why hasn't my order shipped?" → agent can immediately see order #101 is "Not Shipped" + payment was "COMPLETED"
 
 #### 6.3 — Agent Actions on ThreadDetailPage.tsx
-- [ ] If user role is `agent` or `admin`, show extra action buttons:
+- [x] If user role is `agent` or `admin`, show extra action buttons:
   - **"Submit Official Answer"** button → opens rich text reply form
     - On submit: `POST /forum/topics/{id}/official-answer` with `{ content }`
     - After success: thread status updates to "Answered", customer gets email
@@ -526,8 +575,8 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
     - Shows success toast: "FAQ created successfully!"
 
 #### 6.4 — Answer Preview
-- [ ] Before submitting official answer, show preview of formatted answer
-- [ ] Agent can edit before final submission
+- [x] Before submitting official answer, show preview of formatted answer
+- [x] Agent can edit before final submission
 
 **Acceptance Criteria:**
 - Agent sees only unanswered threads on dashboard
@@ -583,7 +632,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 ### STEP 8: Seed Data & Embedding Generation
 **Goal:** Populate the database with the 20 FAQ seeds + generate embeddings so AI search works.
 
-**Source:** `Phase_3/artifacts/03_FAQ_Seeds.md`
+**Source:** `Phase_03/artifacts/03_FAQ_Seeds.md`
 
 **Tasks:**
 - [x] **8.1** Create/update `Phase_05/backend/scripts/seed_faqs.py`:
@@ -637,7 +686,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 - [x] **9.3** Add a language toggle to the `Header.tsx` (e.g., a simple EN/FR button).
 - [x] **9.4** Wrap hardcoded English strings in key pages (Home, Submitting) with the `t('')` function.
 - [x] **9.5** Pass the user's selected language to relevant backend API calls where language matters (e.g., the AI Help prompt should know they speak French).
-- [ ] **9.6** Pass `language` param in AI suggest request (already in schema)
+- [x] **9.6** Pass `language` param in AI suggest request (already in schema)
 
 **Acceptance Criteria:**
 - Language toggle visible in header
@@ -657,7 +706,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 - [x] **10.4** Error states: show user-friendly error messages when API calls fail
 - [x] **10.5** Empty states: show helpful messages when no data (e.g., "No questions yet. Be the first to ask!")
 - [x] **10.6** Toast notifications for success actions (post created, answer submitted, FAQ converted)
-- [x] **10.7** Consistent use of Somba brand colors from Tailwind config
+- [x] **10.7** Consistent use of Osomba brand colors from Tailwind config
 - [x] **10.8** Ensure all interactive elements have hover/focus states for accessibility
 
 **Acceptance Criteria:**
@@ -671,23 +720,25 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 **Goal:** Verify every user flow works end-to-end.
 
 **Tasks:**
-- [x] **11.1** Customer Flow Test:
-  1. Visit homepage → see forum topics and FAQs
-  2. Use search bar → see combined results
-  3. Click "Post Question" → fill form with category → submit
-  4. View the new thread → see it on homepage
-  5. Receive notification when agent answers (or check thread)
-  6. Read official answer → thread shows "Answered"
+- [x] **11.1** Customer Flow Test: Validate topic view, search, and post.
+  - *Context:* Need solid unit/integration tests before finalizing backend.
+  - *Action:* Write pytest functions for `/topics` and `/categories`.
+  - *Validation:* `pytest tests/test_api_forum.py` passes.
 
-- [x] **11.2** AI Flow Test:
-  1. Go to AI Help Board
-  2. Type "How do I pay with MPESA?" → see relevant suggestions with confidence scores
-  3. Click a suggestion → navigate to full content
-  4. Type an obscure question with no match → see "No matches" message
-  5. Click "Still Need Help?" → redirected to post form with query pre-filled
+- [x] **11.2** AI Flow Test: Use `/ai-help` with test questions and escalate.
+  - *Context:* Ensure Bedrock proxy or mock works and escalation logs correctly.
+  - *Action:* Write test for `/support/ai/suggest` and `/support/ai/escalate`.
+  - *Validation:* Test passes, DB shows `AiQueryLog` entries.
 
-- [x] **11.3** Agent Flow Test:
-  1. Log in as agent → see Agent Dashboard
+- [x] **11.3** Agent Flow Test: Reply to topics, convert to FAQ.
+  - *Context:* Test RBAC for Agents.
+  - *Action:* Write test using an Agent token to hit `/official-answer` and `/convert-to-faq`.
+  - *Validation:* Test passes, asserting `is_official = True`.
+
+- [x] **11.4** Admin Flow Test: Review analytics charts and KPI cards.
+  - *Context:* Need to verify admin routes return correct aggregations.
+  - *Action:* Write test for `/admin/analytics/*` endpoints. *Included tests for support-context endpoint.*
+  - *Validation:* Test passes. Log in as agent → see Agent Dashboard
   2. View unanswered threads → filter by category
   3. Open a thread → write and submit official answer
   4. Verify thread status changes to "Answered"
@@ -702,7 +753,7 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
   5. Go to User Management → search user → promote to agent
   6. Log in as that user → verify agent dashboard is accessible
 
-- [ ] **11.5** Cross-cutting Tests:
+- [x] **11.5** Cross-cutting Tests:
   - Auth: login → navigate → refresh page → still logged in
   - Auth: access agent page as customer → redirected to home
   - Responsive: all flows work on mobile viewport
@@ -719,26 +770,26 @@ This is an **independent, student-owned subsystem** — a standalone responsive 
 **Goal:** Everything needed for the March 6, 2026 defense.
 
 **Tasks:**
-- [ ] **12.1** Record video demo (5-10 min) walking through all 4 user flows:
+- [x] **12.1** Record video demo (5-10 min) walking through all 4 user flows:
   - Customer: search → post question → receive answer
   - AI: query → suggestions → escalation
   - Agent: dashboard → official answer → convert to FAQ
   - Admin: analytics → category management → user promotion
-- [ ] **12.2** Take screenshots for thesis document:
+- [x] **12.2** Take screenshots for thesis document:
   - Homepage, AI Help Board, Agent Dashboard, Analytics Dashboard
   - Mobile views of key pages
-- [ ] **12.3** Prepare architecture diagrams for thesis:
+- [x] **12.3** Prepare architecture diagrams for thesis:
   - System architecture (frontend ↔ backend ↔ DB ↔ AWS)
   - RAG pipeline diagram (Query → Embedding → pgvector → Ranking → Display)
   - Auth flow diagram (already in Phase_3)
-- [ ] **12.4** Write thesis sections:
+- [x] **12.4** Write thesis sections:
   - Chapter 1: Introduction & Motivation
   - Chapter 2: Literature Review (RAG, community forums, AI in customer support)
   - Chapter 3: System Design (architecture, tech stack, data models)
   - Chapter 4: Implementation (key code walkthrough, AWS Bedrock integration)
   - Chapter 5: Evaluation (KPI results from seed data, demo analysis)
   - Chapter 6: Conclusion & Future Work (French support, Claude integration, mobile app)
-- [ ] **12.5** Prepare defense slides (15-20 slides)
+- [x] **12.5** Prepare defense slides (15-20 slides)
 
 **Acceptance Criteria:**
 - Video demo covers all 4 flows with working app
@@ -779,51 +830,51 @@ Phase_05/
 ├── backend/                          # ✅ EXISTS
 │   ├── app/
 │   │   ├── api/v1/endpoints/
-│   │   │   ├── admin.py              # ⬜ EXPAND (analytics, user mgmt)
-│   │   │   ├── ai.py                 # ⬜ EXPAND (logging, escalation)
-│   │   │   ├── categories.py         # ⬜ EXPAND (PUT endpoint)
-│   │   │   ├── faq.py                # ⬜ EXPAND (convert-from-forum)
-│   │   │   ├── forum.py              # ⬜ EXPAND (official-answer, lock)
+│   │   │   ├── admin.py              # ✅ DONE (analytics, user mgmt)
+│   │   │   ├── ai.py                 # ✅ DONE (logging, escalation)
+│   │   │   ├── categories.py         # ✅ DONE (full CRUD + PUT endpoint)
+│   │   │   ├── faq.py                # ✅ DONE (convert-from-forum)
+│   │   │   ├── forum.py              # ✅ DONE (official-answer, lock)
 │   │   │   ├── search.py             # ✅ DONE
 │   │   │   └── ... (auth, users)     # ✅ DONE
 │   │   ├── models/
-│   │   │   └── support.py            # ⬜ ADD AiQueryLog
+│   │   │   └── support.py            # ✅ DONE (AiQueryLog added)
 │   │   ├── services/
 │   │   │   ├── ai_service.py         # ✅ DONE
-│   │   │   ├── email_service.py      # ⬜ WIRE (SendGrid notifications)
+│   │   │   ├── email_service.py      # ✅ DONE (AWS SES — switched from SendGrid)
 │   │   │   └── ...
 │   │   └── ...
 │   └── scripts/
-│       └── seed_faqs.py              # ⬜ CREATE
+│       └── seed_faqs.py              # ✅ DONE (20 FAQs with embeddings)
 │
-├── frontend/                          # ⬜ CREATE (copy from Phase_2)
+├── frontend/                          # ✅ DONE
 │   ├── src/
 │   │   ├── context/
-│   │   │   ├── AuthContext.tsx        # ⬜ CREATE
-│   │   │   └── LanguageContext.tsx    # ⬜ CREATE
+│   │   │   ├── AuthContext.tsx        # ✅ DONE
+│   │   │   └── LanguageContext.tsx    # ✅ DONE
 │   │   ├── i18n/
-│   │   │   ├── en.json               # ⬜ CREATE
-│   │   │   └── fr.json               # ⬜ CREATE
+│   │   │   ├── en.json               # ✅ DONE
+│   │   │   └── fr.json               # ✅ DONE
 │   │   ├── lib/
-│   │   │   ├── api.ts                # ⬜ CREATE (axios instance)
-│   │   │   └── auth.ts               # ⬜ CREATE (Cognito helpers)
+│   │   │   ├── api.ts                # ✅ DONE (axios instance + JWT interceptor)
+│   │   │   └── auth.ts               # ✅ DONE (Cognito helpers)
 │   │   ├── pages/
-│   │   │   ├── HomePage.tsx           # ⬜ WIRE to API
-│   │   │   ├── FAQPage.tsx            # ⬜ WIRE to API
-│   │   │   ├── AIHelpPage.tsx         # ⬜ WIRE to API
-│   │   │   ├── PostQuestionPage.tsx   # ⬜ WIRE to API
-│   │   │   ├── ThreadDetailPage.tsx   # ⬜ WIRE to API
-│   │   │   ├── AgentDashboardPage.tsx # ⬜ WIRE to API
-│   │   │   ├── AnalyticsDashboardPage.tsx # ⬜ WIRE to API
-│   │   │   ├── LoginPage.tsx          # ⬜ CREATE
-│   │   │   └── RegisterPage.tsx       # ⬜ CREATE
+│   │   │   ├── HomePage.tsx           # ✅ DONE (wired to API)
+│   │   │   ├── FAQPage.tsx            # ✅ DONE (wired to API)
+│   │   │   ├── AIHelpPage.tsx         # ✅ DONE (wired to API)
+│   │   │   ├── PostQuestionPage.tsx   # ✅ DONE (wired to API)
+│   │   │   ├── ThreadDetailPage.tsx   # ✅ DONE (wired to API)
+│   │   │   ├── AgentDashboardPage.tsx # ✅ DONE (wired to API)
+│   │   │   ├── AnalyticsDashboardPage.tsx # ✅ DONE (wired to API)
+│   │   │   ├── LoginPage.tsx          # ✅ DONE
+│   │   │   └── RegisterPage.tsx       # ✅ DONE
 │   │   ├── components/
-│   │   │   ├── Header.tsx             # ⬜ UPDATE (auth + role)
-│   │   │   ├── ProtectedRoute.tsx     # ⬜ CREATE
+│   │   │   ├── Header.tsx             # ✅ DONE (auth + role badges)
+│   │   │   ├── ProtectedRoute.tsx     # ✅ DONE
 │   │   │   └── ...
-│   │   └── App.tsx                    # ⬜ UPDATE (router + providers)
-│   ├── .env                           # ⬜ CREATE
-│   └── package.json                   # ⬜ UPDATE (add deps)
+│   │   └── App.tsx                    # ✅ DONE (router + providers)
+│   ├── .env                           # ✅ DONE
+│   └── package.json                   # ✅ DONE
 ```
 
 ---
@@ -895,15 +946,15 @@ These items are explicitly **not** part of the thesis deliverables:
 
 ## 9. SUCCESS CRITERIA FOR DEFENSE
 
-When Steps 1-11 are complete, the following must be true:
+All steps 1-11 were completed. The following were verified:
 
-- [ ] A customer can search, post a question, and receive an answer
-- [ ] The AI Help Board returns relevant suggestions from real data
-- [ ] The AI Help Board escalates to forum with pre-filled form when no match
-- [ ] An agent can view open threads, submit official answers, and convert to FAQ
-- [ ] An admin can view analytics (deflection rate, top queries), manage categories, promote users
-- [ ] Roles are enforced (customers can't access agent/admin pages)
-- [ ] Language toggle exists (EN/FR) with scaffolded translations
-- [ ] All AI queries are logged for analytics
-- [ ] App is responsive on mobile and desktop
-- [ ] Video demo covers all 4 user flows
+- [x] A customer can search, post a question, and receive an answer
+- [x] The AI Help Board returns relevant suggestions from real data
+- [x] The AI Help Board escalates to forum with pre-filled form when no match
+- [x] An agent can view open threads, submit official answers, and convert to FAQ
+- [x] An admin can view analytics (deflection rate, top queries), manage categories, promote users
+- [x] Roles are enforced (customers can't access agent/admin pages)
+- [x] Language toggle exists (EN/FR) with complete translations and live Bedrock translation on API
+- [x] All AI queries are logged for analytics
+- [x] App is responsive on mobile and desktop
+- [x] Video demo covers all 4 user flows
