@@ -1,3 +1,7 @@
+# AI CLI tool directories — local only, never push to GitHub
+.claude/
+.gemini/
+
 .DS_Store
 .DS_Store
 .DS_Store
