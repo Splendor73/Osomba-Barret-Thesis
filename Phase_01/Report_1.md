@@ -20,13 +20,13 @@ Hey! So these past two weeks have been all about planning and getting my head ar
 
 First thing I did was sit down and think about who's going to use this forum and what they need. I came up with three main types of users:
 
-**Customers** - These are regular Somba marketplace users who have questions like "Why isn't my MPESA payment showing up?" or "How do I create a listing?" They just want quick answers without having to wait for support agents.
+**Customers** - These are regular Osomba marketplace users who have questions like "Why isn't my MPESA payment showing up?" or "How do I create a listing?" They just want quick answers without having to wait for support agents.
 
 **Agents** - These are the support staff who answer questions. Right now they're answering the same questions over and over, which is super inefficient. They need a way to answer once and turn that answer into something reusable.
 
 **Admins** - Support managers who need to see how everything's working, like how many questions are getting answered and which topics come up the most.
 
-I also wrote down the main categories we'll organize everything into: Payments, Listings, Safety, Disputes, Account, and Delivery. These came from looking at what Somba users typically ask about.
+I also wrote down the main categories we'll organize everything into: Payments, Listings, Safety, Disputes, Account, and Delivery. These came from looking at what Osomba users typically ask about.
 
 **The Big Goals:**
 - Help 70% of users find answers on their own (without creating a new post)
@@ -117,7 +117,7 @@ I wrote down everything the system needs to do in a requirements document. This 
 
 I also included a **Risk Assessment** section where I looked at things that could go wrong (like OpenAI costs getting too high) and wrote down my backup plans.
 
-I also wrote down what's explicitly OUT of scope for this thesis (like video tutorials, live chat, or deploying to all Somba users - this is just a pilot).
+I also wrote down what's explicitly OUT of scope for this thesis (like video tutorials, live chat, or deploying to all Osomba users - this is just a pilot).
 
 ---
 
@@ -227,7 +227,7 @@ Now that all the planning is done, I'm moving into design:
 
 1. **User Flows** - Map out exactly how customers, agents, and admins move through the system
 2. **Wireframes** - Sketch low-fidelity mockups of the main screens
-3. **Figma Mockups** - Create high-fidelity designs with Somba's branding
+3. **Figma Mockups** - Create high-fidelity designs with Osomba's branding
 4. **Component Library** - Design reusable UI components (buttons, cards, forms, etc.)
 5. **Get Feedback** - Show everything to Dr. Osburn and Yannick to make sure I'm on the right track
 

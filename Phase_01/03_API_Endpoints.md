@@ -1,4 +1,4 @@
-# Somba Customer Care Forum: API Endpoint Specification
+# Osomba Customer Care Forum: API Endpoint Specification
 
 ## Project Information
 **Author:** Yashu Gautamkumar Patel  
@@ -468,7 +468,7 @@ GET /forum/posts?category_id=1&status=open&page=1&limit=10
 ```json
 {
   "title": "What payment methods are supported?",
-  "body": "Somba supports the following payment methods:\n- MPESA (Kenya, Tanzania)\n- AirtelMoney (Uganda)\n- Paystack (card payments)\n- Cryptocurrency (Bitcoin, USDT)",
+  "body": "Osomba supports the following payment methods:\n- MPESA (Kenya, Tanzania)\n- AirtelMoney (Uganda)\n- Paystack (card payments)\n- Cryptocurrency (Bitcoin, USDT)",
   "category_id": 1,
   "language": "en",
   "status": "published"

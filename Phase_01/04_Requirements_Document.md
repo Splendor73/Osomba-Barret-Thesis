@@ -1,7 +1,7 @@
-# Somba Customer Care Forum: Requirements Document
+# Osomba Customer Care Forum: Requirements Document
 
 ## Project Information
-**Thesis Title:** Customer Care Forum + AI Help Board for Somba Marketplace  
+**Thesis Title:** Customer Care Forum + AI Help Board for Osomba Marketplace  
 **Author:** Yashu Gautamkumar Patel  
 **Thesis Director:** Steven Osburn  
 **Sponsor:** Yannick Nkayilu Salomon (Kimuntu Power Inc.)  
@@ -12,12 +12,12 @@
 
 ## Executive Summary
 
-This document defines the functional and non-functional requirements for the Somba Customer Care Forum, a support subsystem designed to help marketplace users find answers to common questions through:
+This document defines the functional and non-functional requirements for the Osomba Customer Care Forum, a support subsystem designed to help marketplace users find answers to common questions through:
 1. A searchable forum where customers can post questions and receive official answers from agents
 2. A curated FAQ library built from agent-verified solutions
 3. An AI Help Board that suggests relevant content using constrained retrieval-augmented generation
 
-The system aims to reduce support burden, improve time-to-resolution, and build user trust as Somba scales across multiple African countries.
+The system aims to reduce support burden, improve time-to-resolution, and build user trust as Osomba scales across multiple African countries.
 
 ---
 
@@ -27,14 +27,14 @@ The system aims to reduce support burden, improve time-to-resolution, and build 
 1. **Repetitive Questions:** Support agents repeatedly answer the same questions about payments, listings, disputes, account issues, and delivery
 2. **Slow Resolution:** Users wait hours or days for agent responses to common issues
 3. **No Knowledge Base:** Resolved issues aren't captured for future self-service
-4. **Scaling Difficulty:** As Somba expands to more countries, agent-only support becomes unsustainable
+4. **Scaling Difficulty:** As Osomba expands to more countries, agent-only support becomes unsustainable
 5. **Language Barriers:** English and French speakers need consistent support experiences
 
 ### Target Outcomes:
 - **70% deflection rate:** 7 out of 10 queries resolved via FAQ or forum search (no new ticket)
 - **Sub-5-minute self-service:** Users find answers in under 5 minutes
 - **Agent efficiency:** Convert quality answers to reusable FAQs in one click
-- **Trust building:** Transparent, searchable answers show Somba cares about support
+- **Trust building:** Transparent, searchable answers show Osomba cares about support
 
 ---
 
@@ -42,7 +42,7 @@ The system aims to reduce support burden, improve time-to-resolution, and build 
 
 ### 1. **Customer (Primary User)**
 **Profile:**
-- Somba marketplace buyer or seller
+- Osomba marketplace buyer or seller
 - Age: 18-45
 - Tech-savvy (smartphone user) but may have limited internet
 - Languages: English or French
@@ -51,14 +51,14 @@ The system aims to reduce support burden, improve time-to-resolution, and build 
 **Goals:**
 - Find answers quickly without contacting support
 - Post questions when self-service doesn't help
-- Get clear, official answers from Somba agents
+- Get clear, official answers from Osomba agents
 - Understand resolution steps in their language
 
 ---
 
 ### 2. **Agent (Support Staff)**
 **Profile:**
-- Somba customer support agent
+- Osomba customer support agent
 - Fluent in English and/or French
 - Handles 20-50 support queries daily
 - Pain points: Repeatedly answering the same questions, no central knowledge base
@@ -111,7 +111,7 @@ The system aims to reduce support burden, improve time-to-resolution, and build 
 
 ---
 
-**US-C3:** As a **customer**, I want to **view official answers on forum threads** so that **I know which solutions are verified by Somba agents**.
+**US-C3:** As a **customer**, I want to **view official answers on forum threads** so that **I know which solutions are verified by Osomba agents**.
 
 **Acceptance Criteria:**
 - Official answers have a visual badge (e.g., "Official Answer" tag)
@@ -375,7 +375,7 @@ The system aims to reduce support burden, improve time-to-resolution, and build 
 
 **C-1:** Development timeline: 2 semesters (Fall 2025 and Spring 2026)  
 **C-2:** Budget: Limited to free-tier or low-cost cloud services (Vercel, Supabase, Railway)  
-**C-3:** Technology stack: Must integrate with existing Somba infrastructure (if applicable)  
+**C-3:** Technology stack: Must integrate with existing Osomba infrastructure (if applicable)  
 **C-4:** Pilot scope: Limited to 50-100 beta users in January 2026  
 **C-5:** Language support: English (full), French (scaffolded for future)
 
@@ -383,7 +383,7 @@ The system aims to reduce support burden, improve time-to-resolution, and build 
 
 ## Assumptions
 
-**A-1:** Somba will provide access to test user accounts for pilot  
+**A-1:** Osomba will provide access to test user accounts for pilot  
 **A-2:** Agents will be available to seed initial FAQ content (Top-20 articles)  
 **A-3:** Users have smartphone access (no desktop-only features)  
 **A-4:** OpenAI API or equivalent will remain accessible for embeddings  
@@ -424,13 +424,13 @@ The system will be considered successful if it meets the following criteria by A
 
 The following features are explicitly OUT OF SCOPE for this thesis project:
 
-**OS-1:** Direct integration with Somba mobile app (forum will be standalone web app)  
+**OS-1:** Direct integration with Osomba mobile app (forum will be standalone web app)  
 **OS-2:** Video tutorials or multimedia FAQ content  
 **OS-3:** Community voting/gamification (upvotes, badges, reputation)  
 **OS-4:** Live chat with agents  
 **OS-5:** Advanced AI features (sentiment analysis, auto-categorization)  
 **OS-6:** Mobile app development (web-only for now)  
-**OS-7:** Full production deployment to all Somba users (pilot only)
+**OS-7:** Full production deployment to all Osomba users (pilot only)
 
 ---
 

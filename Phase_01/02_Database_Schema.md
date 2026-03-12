@@ -1,4 +1,4 @@
-# Somba Customer Care Forum: Database Schema Document
+# Osomba Customer Care Forum: Database Schema Document
 
 ## Project Information
 **Author:** Yashu Gautamkumar Patel  
@@ -148,7 +148,7 @@ INSERT INTO forum_posts (id, user_id, category_id, title, body, status) VALUES
  '550e8400-e29b-41d4-a716-446655440000',
  1,
  'MPESA payment not reflecting in my account',
- 'I made a payment 2 hours ago via MPESA but I still don''t see it in my Somba wallet. Transaction ID: MPX12345. Please help!',
+ 'I made a payment 2 hours ago via MPESA but I still don''t see it in my Osomba wallet. Transaction ID: MPX12345. Please help!',
  'open');
 ```
 

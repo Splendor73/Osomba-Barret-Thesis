@@ -1,7 +1,7 @@
-# Somba Customer Care Forum: System Architecture Document
+# Osomba Customer Care Forum: System Architecture Document
 
 ## Project Overview
-**Thesis:** Customer Care Forum + AI Help Board for Somba Marketplace  
+**Thesis:** Customer Care Forum + AI Help Board for Osomba Marketplace  
 **Author:** Yashu Gautamkumar Patel  
 **Date:** November 30, 2025  
 **Report Period:** Weeks 1-2 (Foundation Phase)
