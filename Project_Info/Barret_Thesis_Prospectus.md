@@ -1,17 +1,17 @@
-# Somba Marketplace: Unified Support Forum and FAQ with AI-Assisted Answers
+# Osomba Marketplace: Unified Support Forum and FAQ with AI-Assisted Answers
 
 **Student:** Yashu Gautamkumar Patel (ypatel37@asu.edu)
 **Thesis Director:** Steven Osburn (sdosburn@asu.edu)
 **Second Committee Member:** Yannick Nkayilu Salomon (yannkayilu@kimuntupower.com)
 
 ## TOPIC OVERVIEW
-This honors thesis project will be combined with the engineering capstone course (CSE 485/486) at the Ira A. Fulton Schools of Engineering. Our sponsor is **Kimuntu Power Inc. (Somba Marketplace)**, led by Yannick Nkayilu Salomon. Somba is a multi-country buyer–seller marketplace with English and French support that helps people list, discover, and transact safely. As the platform grows, one of the biggest challenges is providing users with fast, reliable help on topics like payments, listings, disputes, account access, delivery, and safety.
+This honors thesis project will be combined with the engineering capstone course (CSE 485/486) at the Ira A. Fulton Schools of Engineering. Our sponsor is **Kimuntu Power Inc. (Osomba Marketplace)**, led by Yannick Nkayilu Salomon. Osomba is a multi-country buyer–seller marketplace with English and French support that helps people list, discover, and transact safely. As the platform grows, one of the biggest challenges is providing users with fast, reliable help on topics like payments, listings, disputes, account access, delivery, and safety.
 
-The capstone team is working on the core marketplace app. At the same time, my **Barrett thesis focuses on building a Customer Care Forum** where customers can ask questions, get official answers from Somba agents, and search through past answers and short how-to guides (FAQ). The goal of the forum and FAQ is to cut down on repeated questions, make support more transparent, and speed up resolution times for common issues across key categories like Payments, Listings, Safety, Disputes, Account, and Delivery.
+The capstone team is working on the core marketplace app. At the same time, my **Barrett thesis focuses on building a Customer Care Forum** where customers can ask questions, get official answers from Osomba agents, and search through past answers and short how-to guides (FAQ). The goal of the forum and FAQ is to cut down on repeated questions, make support more transparent, and speed up resolution times for common issues across key categories like Payments, Listings, Safety, Disputes, Account, and Delivery.
 
 To support the forum and FAQ, I'm also developing an **AI Help Board** that suggests answers drawn only from approved, existing content, specifically FAQ articles and previously answered forum threads. The assistant shows clear titles and snippets and doesn't pull from external sources. When it can't find a reliable match, it directs users to post a new question on the forum. This approach prioritizes accuracy, proper citations, and safe escalation rather than generating open-ended responses.
 
-While this project aligns closely with Somba's mission and the capstone's goals, the thesis is an independent, student-owned subsystem with its own deliverables, evaluation plan, and written component. The expected outcome is a practical improvement to Somba's support experience helping users find answers quickly on their own, allowing agents to turn quality answers into reusable FAQ entries, and laying groundwork for multilingual support (starting with English, with French scaffolded in) as the marketplace continues to scale.
+While this project aligns closely with Osomba's mission and the capstone's goals, the thesis is an independent, student-owned subsystem with its own deliverables, evaluation plan, and written component. The expected outcome is a practical improvement to Osomba's support experience helping users find answers quickly on their own, allowing agents to turn quality answers into reusable FAQ entries, and laying groundwork for multilingual support (starting with English, with French scaffolded in) as the marketplace continues to scale.
 
 ## PROJECT DELIVERABLES
 
@@ -31,7 +31,7 @@ While this project aligns closely with Somba's mission and the capstone's goals,
 ## PROJECT DESCRIPTION
 
 ### Summary
-This thesis builds a **Customer Care Forum** for the Somba marketplace where users can ask questions, receive official answers from agents, and search through past answers and FAQ articles to help themselves. An **AI Help Board** suggests answers using only approved FAQ content and previously answered forum threads. If there's no good match, users can create a forum post that's already partially filled out. The main goals are to cut down on duplicate questions, improve time-to-resolution, and build user trust, starting with English and French scaffolding set up for later.
+This thesis builds a **Customer Care Forum** for the Osomba marketplace where users can ask questions, receive official answers from agents, and search through past answers and FAQ articles to help themselves. An **AI Help Board** suggests answers using only approved FAQ content and previously answered forum threads. If there's no good match, users can create a forum post that's already partially filled out. The main goals are to cut down on duplicate questions, improve time-to-resolution, and build user trust, starting with English and French scaffolding set up for later.
 
 ### Technologies (subject to change)
 At this prospectus stage, I'm keeping implementation details intentionally flexible since they'll likely evolve as I actually build the project. The system will follow standard web-app patterns, include role-based access controls (customer/agent/admin), and use a constrained answer-suggestion service that only pulls from approved internal content. I'll document the final technical choices in the design doc once I've worked through them.

@@ -55,7 +55,7 @@ This project provides hands-on experience in:
 
 ## 📦 Expected Deliverables
 
-### Fully Functional Somba Marketplace App
+### Fully Functional Osomba Marketplace App
 *   User registration, product listings, secure payment integration, chat functionality.
 *   Order management, notifications, and dynamic language switching.
 
