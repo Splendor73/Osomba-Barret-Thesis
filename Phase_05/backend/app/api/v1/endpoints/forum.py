@@ -159,6 +159,24 @@ def faq_status(topic_id: int, post_id: int, db: SessionDep, admin: AdminUserDep)
             faq = db.query(FAQ).filter(FAQ.question == topic.title).first()
     return {"is_faq": faq is not None, "faq_id": faq.id if faq else None}
 
+@router.delete("/topics/{topic_id}")
+def delete_topic(topic_id: int, db: SessionDep, admin: AdminUserDep):
+    topic = forum_service.get_topic(db, topic_id)
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+        
+    forum_service.forum_crud.delete_topic(db, topic_id)
+    return {"detail": "Topic deleted successfully"}
+
+@router.delete("/topics/{topic_id}/posts/{post_id}")
+def delete_post(topic_id: int, post_id: int, db: SessionDep, admin: AdminUserDep):
+    post = forum_service.forum_crud.get_post(db, post_id)
+    if not post or post.topic_id != topic_id:
+        raise HTTPException(status_code=404, detail="Post not found")
+        
+    forum_service.forum_crud.delete_post(db, post_id)
+    return {"detail": "Post deleted successfully"}
+
 @router.delete("/topics/{topic_id}/undo-faq/{post_id}")
 def undo_faq(topic_id: int, post_id: int, db: SessionDep, admin: AdminUserDep):
     from app.models.support import FAQ

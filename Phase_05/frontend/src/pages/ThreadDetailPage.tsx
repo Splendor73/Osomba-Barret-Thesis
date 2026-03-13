@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { CheckCircle, ChevronLeft, Bookmark, BookmarkX, Lock, Unlock, Send, X, User } from "lucide-react";
+import { CheckCircle, ChevronLeft, Bookmark, BookmarkX, Lock, Unlock, Send, X, User, Trash2 } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { StatusBadge } from "../components/StatusBadge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -149,6 +149,31 @@ export function ThreadDetailPage() {
     }
   };
 
+  const handleDeletePost = async (postId: number) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    
+    try {
+      await api.delete(`/support/topics/${id}/posts/${postId}`);
+      setToast({ message: "Post deleted successfully", type: "success" });
+      fetchThreadData();
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      setToast({ message: "Failed to delete post", type: "error" });
+    }
+  };
+
+  const handleDeleteTopic = async () => {
+    if (!window.confirm("Are you sure you want to delete this entire thread?")) return;
+    
+    try {
+      await api.delete(`/support/topics/${id}`);
+      navigate("/");
+    } catch (err) {
+      console.error("Failed to delete topic:", err);
+      setToast({ message: "Failed to delete topic", type: "error" });
+    }
+  };
+
   const handleLockThread = async () => {
     try {
       await api.post(`/support/topics/${id}/lock`, { is_locked: true });
@@ -256,8 +281,17 @@ export function ThreadDetailPage() {
         <div className="flex gap-8">
           <div className="flex-1">
             {/* Thread Card */}
-            <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 mb-6 border border-gray-100">
-              <div className="flex items-start gap-3 mb-4 flex-wrap">
+            <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 mb-6 border border-gray-100 relative">
+              {role === 'admin' && (
+                <button 
+                  onClick={handleDeleteTopic}
+                  className="absolute top-4 right-4 p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                  title="Delete Topic"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              )}
+              <div className="flex items-start gap-3 mb-4 flex-wrap pr-10">
                 <CategoryBadge category={topic.category_name} icon={topic.category_icon || "📝"} size="small" />
                 <StatusBadge status={topic.status} size="small" />
               </div>
@@ -285,7 +319,16 @@ export function ThreadDetailPage() {
 
             {/* Official Answer */}
             {officialAnswer && (
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-sm p-6 md:p-8 border-l-4 border-[#46BB39] mb-6">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-sm p-6 md:p-8 border-l-4 border-[#46BB39] mb-6 relative">
+                {role === 'admin' && (
+                  <button 
+                    onClick={() => handleDeletePost(officialAnswer.id)}
+                    className="absolute top-4 right-4 p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                    title="Delete Post"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
                 <div className="flex items-center gap-2 mb-4">
                   <CheckCircle className="w-5 h-5 text-[#46BB39]" />
                   <span className="px-3 py-1 bg-[#46BB39] text-white rounded-full text-sm shadow-sm font-medium">
@@ -315,7 +358,16 @@ export function ThreadDetailPage() {
 
             {/* Regular Posts */}
             {regularPosts.map((post) => (
-              <div key={post.id} className="bg-white rounded-xl shadow-sm p-6 md:p-8 mb-6 border border-gray-100">
+              <div key={post.id} className="bg-white rounded-xl shadow-sm p-6 md:p-8 mb-6 border border-gray-100 relative">
+                {role === 'admin' && (
+                  <button 
+                    onClick={() => handleDeletePost(post.id)}
+                    className="absolute top-4 right-4 p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                    title="Delete Post"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
                 <div className="flex items-center gap-3 mb-4">
                   <ImageWithFallback
                     src={post.author_avatar}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, ThumbsUp, ThumbsDown, Edit } from "lucide-react";
+import { ChevronLeft, ThumbsUp, ThumbsDown, Edit, Trash2 } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
@@ -95,6 +95,20 @@ export function FAQPage() {
       } : null);
     } catch (err) {
       console.error('Failed to register vote', err);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!faq) return;
+    const confirmDelete = window.confirm(t('faq.confirm_delete') || "Are you sure you want to delete this FAQ?");
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(`/support/faq/${faq.id}`);
+      navigate("/");
+    } catch (err) {
+      console.error('Failed to delete FAQ', err);
+      alert(t('faq.delete_failed') || "Failed to delete FAQ");
     }
   };
 
@@ -202,13 +216,22 @@ export function FAQPage() {
         </div>
 
         {canEdit && !isLoading && !error && (
-          <button
-            onClick={() => navigate(`/admin/faq/${faq?.id}/edit`)}
-            className="fixed bottom-8 right-8 bg-[#F67C01] text-white px-5 py-3 rounded-full shadow-lg hover:bg-[#d56b01] transition-colors flex items-center gap-2"
-          >
-            <Edit className="w-4 h-4" />
-            {t('faq.edit_faq')}
-          </button>
+          <div className="fixed bottom-8 right-8 flex flex-col gap-3">
+            <button
+              onClick={() => navigate(`/admin/faq/${faq?.id}/edit`)}
+              className="bg-[#F67C01] text-white px-5 py-3 rounded-full shadow-lg hover:bg-[#d56b01] transition-colors flex items-center justify-center gap-2"
+            >
+              <Edit className="w-4 h-4" />
+              {t('faq.edit_faq')}
+            </button>
+            <button
+              onClick={handleDelete}
+              className="bg-red-500 text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              {t('faq.delete_faq') || "Delete FAQ"}
+            </button>
+          </div>
         )}
       </div>
     </div>

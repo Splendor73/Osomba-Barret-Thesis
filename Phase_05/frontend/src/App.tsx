@@ -10,6 +10,7 @@ import { PostQuestionPage } from "./pages/PostQuestionPage";
 import { AIHelpPage } from "./pages/AIHelpPage";
 import { AgentDashboardPage } from "./pages/AgentDashboardPage";
 import { FAQPage } from "./pages/FAQPage";
+import { EditFAQPage } from "./pages/EditFAQPage";
 import { AnalyticsDashboardPage } from "./pages/AnalyticsDashboardPage";
 import { UserManagementPage } from "./pages/UserManagementPage";
 import { CategoryManagementPage } from "./pages/CategoryManagementPage";
@@ -90,6 +91,7 @@ export default function App() {
             <Route path="/admin/analytics" element={<ProtectedRoute requiredRole="admin"><AnalyticsDashboardPage /></ProtectedRoute>} />
             <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><UserManagementPage /></ProtectedRoute>} />
             <Route path="/admin/categories" element={<ProtectedRoute requiredRole="admin"><CategoryManagementPage /></ProtectedRoute>} />
+            <Route path="/admin/faq/:id/edit" element={<ProtectedRoute anyAgentOrAdmin={true}><Header showSearch={false} /><EditFAQPage /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>
