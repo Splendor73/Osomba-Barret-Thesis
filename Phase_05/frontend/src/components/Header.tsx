@@ -58,11 +58,11 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
 
             <div className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-3">
               {isAuthenticated && (
-                <div className="min-w-0 flex items-center mr-1 sm:mr-2">
-                  <span className="max-w-[140px] sm:max-w-none truncate text-sm font-medium text-gray-700">
+                <div className="min-w-0 flex items-center gap-2 mr-1 sm:mr-2">
+                  <span className="max-w-[110px] sm:max-w-[140px] md:max-w-none truncate text-sm font-medium text-gray-700">
                     {userName}
                   </span>
-                  <span className="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 capitalize border border-gray-200">
+                  <span className="shrink-0 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 capitalize border border-gray-200">
                     {userRoleLabel}
                   </span>
                 </div>
@@ -107,10 +107,19 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                   </button>
                 </>
               ) : (
-                <Link to="/login" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] text-white rounded-lg transition-transform hover:scale-105 font-medium shadow-md">
-                  <LogIn className="w-4 h-4" />
-                  <span>{t('nav.login')}</span>
-                </Link>
+                <>
+                  <Link
+                    to="/login"
+                    className="sm:hidden inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] text-white rounded-lg font-medium shadow-md"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span className="text-sm">{t('nav.login')}</span>
+                  </Link>
+                  <Link to="/login" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] text-white rounded-lg transition-transform hover:scale-105 font-medium shadow-md">
+                    <LogIn className="w-4 h-4" />
+                    <span>{t('nav.login')}</span>
+                  </Link>
+                </>
               )}
             </div>
           </div>
