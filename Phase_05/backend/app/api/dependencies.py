@@ -1,15 +1,15 @@
 from typing import Annotated, Optional
-from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
-from datetime import datetime, UTC
+
+from app.core.security import verify_cognito_token
 from app.db.database import get_db
 from app.models.user import User
-from app.core.security import verify_cognito_token
-from app.services.product_service import ProductService
-from app.services.order_service import OrderService
 from app.services.auth_service import AuthService
-from app.services.auction_service import AuctionService
+from app.services.support_access_service import get_effective_support_role
+
 security = HTTPBearer()
 optional_security = HTTPBearer(auto_error=False)
 
@@ -90,23 +90,23 @@ async def get_current_user(
 
 async def get_admin_user(
     current_user: User = Depends(get_current_user),
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
 ):
     payload = verify_cognito_token(credentials.credentials)
-    groups = [g.lower() for g in payload.get("cognito:groups", [])]
-    role = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role or "")
-    if "admins" not in groups and "admin" not in groups and role != "admin":
+    support_role = get_effective_support_role(db, current_user, payload)
+    if support_role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
 async def get_agent_user(
     current_user: User = Depends(get_current_user),
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
 ):
     payload = verify_cognito_token(credentials.credentials)
-    groups = [g.lower() for g in payload.get("cognito:groups", [])]
-    role = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role or "")
-    if not ({"agents", "admins", "agent", "admin"} & set(groups)) and role not in ("agent", "admin"):
+    support_role = get_effective_support_role(db, current_user, payload)
+    if support_role not in ("agent", "admin"):
         raise HTTPException(status_code=403, detail="Agent or Admin access required")
     return current_user
 
@@ -129,19 +129,6 @@ OptionalUserDep = Annotated[Optional[User], Depends(get_optional_user)]
 AdminUserDep = Annotated[User, Depends(get_admin_user)]
 AgentUserDep = Annotated[User, Depends(get_agent_user)]
 
-def get_product_service(db: SessionDep) -> ProductService:
-    return ProductService(db)
-
-def get_order_service(db: SessionDep) -> OrderService:
-    return OrderService(db)
-
 def get_auth_service(db: SessionDep) -> AuthService:
     return AuthService(db)
-
-def get_auction_service(db: SessionDep) -> AuctionService:
-    return AuctionService(db)
-
-ProductServiceDep = Annotated[ProductService, Depends(get_product_service)]
-OrderServiceDep = Annotated[OrderService, Depends(get_order_service)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
-AuctionServiceDep = Annotated[AuctionService, Depends(get_auction_service)]

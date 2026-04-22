@@ -1,13 +1,37 @@
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from typing import List
+
 from sqlalchemy.orm import Session
+
+from app.api.dependencies import get_current_user
+from app.core.security import verify_cognito_token
+from app.crud import user as crud_user
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
-from app.api.dependencies import get_current_user
-from app.crud import user as crud_user
+from app.services.support_access_service import get_effective_support_role
 
 router = APIRouter()
+security = HTTPBearer()
+
+@router.get("/me")
+def read_current_user_profile(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    """
+    Return the authenticated user's current profile plus resolved support role.
+    """
+    payload = verify_cognito_token(credentials.credentials)
+    return {
+        "user_id": current_user.user_id,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "user_name": current_user.user_name,
+        "support_role": get_effective_support_role(db, current_user, payload) or "customer",
+    }
 
 @router.get("/", response_model=List[UserResponse])
 def read_users(
@@ -19,7 +43,7 @@ def read_users(
     """
     Retrieve all users. Admin only.
     """
-    if current_user.role != 'admin':
+    if get_effective_support_role(db, current_user) != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
     users = crud_user.get_all_users(db, skip=skip, limit=limit)
     return users
@@ -52,7 +76,7 @@ def update_user_endpoint(
         raise HTTPException(status_code=404, detail="User not found")
     
     # Authorization check
-    if db_user.user_id != current_user.user_id and current_user.role != 'admin':
+    if db_user.user_id != current_user.user_id and get_effective_support_role(db, current_user) != "admin":
          raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
     user = crud_user.update_user(db=db, user_id=user_id, user_update=user_in)
@@ -67,7 +91,7 @@ def delete_user_endpoint(
     """
     Delete a user. Only admins can delete users.
     """
-    if current_user.role != 'admin':
+    if get_effective_support_role(db, current_user) != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to delete a user")
 
     db_user = crud_user.get_user_by_id(db, user_id=user_id)

@@ -72,3 +72,26 @@ export async function getUserRole(): Promise<'customer' | 'agent' | 'admin'> {
     return 'customer';
   }
 }
+
+export async function getSupportSessionUser() {
+  try {
+    const session = await fetchAuthSession();
+    const token = session.tokens?.idToken?.toString() || session.tokens?.accessToken?.toString();
+    if (!token) return null;
+
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return await response.json();
+  } catch {
+    return null;
+  }
+}

@@ -9,7 +9,7 @@ export function OrganicBackground({ variant = "default" }: OrganicBackgroundProp
   if (variant === "minimal") {
     return (
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[10%] right-[5%] w-[350px] h-[350px] bg-gradient-to-br from-[#F67C01]/10 to-[#46BB39]/10 rounded-full blur-3xl" />
+        <div className="absolute top-[10%] right-[5%] w-[350px] h-[350px] bg-gradient-to-br from-[#F67C01]/10 to-[#F89C4A]/10 rounded-full blur-3xl" />
       </div>
     );
   }
@@ -23,7 +23,7 @@ export function OrganicBackground({ variant = "default" }: OrganicBackgroundProp
         <div className="absolute bottom-[-5%] left-[300px] w-[350px] h-[350px] opacity-10">
           <Leaf />
         </div>
-        <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-gradient-to-br from-[#F67C01]/10 to-[#46BB39]/10 rounded-full blur-3xl" />
+        <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-gradient-to-br from-[#F67C01]/10 to-[#F89C4A]/10 rounded-full blur-3xl" />
       </div>
     );
   }
@@ -37,7 +37,7 @@ export function OrganicBackground({ variant = "default" }: OrganicBackgroundProp
         <div className="absolute bottom-[-5%] left-[-5%] w-[350px] h-[350px] opacity-10">
           <Leaf />
         </div>
-        <div className="absolute top-[30%] left-[20%] w-[400px] h-[400px] bg-gradient-to-br from-[#F67C01]/10 to-[#46BB39]/10 rounded-full blur-3xl" />
+        <div className="absolute top-[30%] left-[20%] w-[400px] h-[400px] bg-gradient-to-br from-[#F67C01]/10 to-[#F89C4A]/10 rounded-full blur-3xl" />
       </div>
     );
   }
@@ -53,8 +53,8 @@ export function OrganicBackground({ variant = "default" }: OrganicBackgroundProp
         <Leaf />
       </div>
       {/* Subtle gradient blurs */}
-      <div className="absolute top-[20%] right-[15%] w-[400px] h-[400px] bg-gradient-to-br from-[#F67C01]/10 to-[#46BB39]/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-[10%] left-[10%] w-[350px] h-[350px] bg-gradient-to-tr from-[#46BB39]/10 to-[#21825C]/10 rounded-full blur-3xl" />
+      <div className="absolute top-[20%] right-[15%] w-[400px] h-[400px] bg-gradient-to-br from-[#F67C01]/10 to-[#F89C4A]/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-[10%] left-[10%] w-[350px] h-[350px] bg-gradient-to-tr from-[#F89C4A]/10 to-[#F67C01]/10 rounded-full blur-3xl" />
     </div>
   );
 }

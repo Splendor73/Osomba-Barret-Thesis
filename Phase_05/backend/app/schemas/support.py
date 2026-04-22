@@ -127,6 +127,11 @@ class ConvertToFAQRequest(BaseModel):
     category_id: Optional[int] = None
 
 
+class ReportRequest(BaseModel):
+    topic_id: Optional[int] = None
+    post_id: Optional[int] = None
+    reason: str
+
 # --- FAQs ---
 class FAQBase(BaseModel):
     question: str = Field(..., max_length=255)

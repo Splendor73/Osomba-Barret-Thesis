@@ -6,6 +6,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { OrganicBackground } from "../components/OrganicBackground";
+import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -27,6 +28,7 @@ export function AIHelpPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
   const { language, t } = useLanguage();
 
   const exampleQuestions = [
@@ -77,7 +79,17 @@ export function AIHelpPage() {
         console.error("Failed to log escalation:", err);
       }
     }
-    navigate(`/post?q=${encodeURIComponent(query)}`);
+    if (isAuthenticated) {
+      navigate(`/post?q=${encodeURIComponent(query)}`);
+      return;
+    }
+
+    navigate("/login", {
+      state: {
+        from: { pathname: "/post", search: `?q=${encodeURIComponent(query)}` },
+        message: t('login.support_write_required'),
+      },
+    });
   };
 
   const handleResultClick = (result: SuggestionCard) => {
@@ -110,10 +122,10 @@ export function AIHelpPage() {
 
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#F67C01] to-[#46BB39] rounded-xl flex items-center justify-center shadow-md">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#F67C01] to-[#F89C4A] rounded-xl flex items-center justify-center shadow-md">
               <Sparkles className="w-7 h-7 text-white" />
             </div>
-            <h1 className="bg-gradient-to-r from-[#F67C01] to-[#46BB39] bg-clip-text text-transparent">
+            <h1 className="bg-gradient-to-r from-[#F67C01] to-[#F89C4A] bg-clip-text text-transparent">
               {t('ai.title')}
             </h1>
           </div>

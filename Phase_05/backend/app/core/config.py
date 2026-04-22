@@ -4,14 +4,23 @@ Purpose: Manages application settings and environment variables (DB, AWS, Secret
 Usage: Import `settings` to access config values.
 Architecture: Core Layer - Configuration Management.
 """
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List, Optional
+
 from pydantic import Field
-from typing import Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
-    PROJECT_NAME: str = "Osomba Marketplace API"
+    PROJECT_NAME: str = "Osomba Support API"
+    SUPPORT_API_PREFIX: str = Field(default="/support-api", alias="SUPPORT_API_PREFIX")
+    SUPPORT_DB_SCHEMA: str = Field(default="support", alias="SUPPORT_DB_SCHEMA")
+    SUPPORT_DB_VERSION_TABLE: str = Field(default="alembic_version_support", alias="SUPPORT_DB_VERSION_TABLE")
+    SUPPORT_FRONTEND_URL: str = Field(default="https://support.osomba.com", alias="SUPPORT_FRONTEND_URL")
+    BACKEND_CORS_ORIGINS: List[str] = Field(
+        default=["http://localhost:3000", "https://support.osomba.com"],
+        alias="BACKEND_CORS_ORIGINS",
+    )
     
     # Database
     POSTGRES_SERVER: str
@@ -38,6 +47,8 @@ class Settings(BaseSettings):
     # Cognito Configuration
     cognito_user_pool_id: Optional[str] = Field(default=None, alias="COGNITO_USER_POOL_ID")
     cognito_app_client_id: Optional[str] = Field(default=None, alias="COGNITO_APP_CLIENT_ID")
+    cognito_admin_group_name: str = Field(default="Admins", alias="COGNITO_ADMIN_GROUP_NAME")
+    cognito_agent_group_name: str = Field(default="Agents", alias="COGNITO_AGENT_GROUP_NAME")
 
     # Payment Configuration
     mpesa_api_key: Optional[str] = Field(default=None, alias="MPESA_API_KEY")

@@ -18,7 +18,7 @@ def _enrich_faq(faq) -> dict:
 
 @router.get("/", response_model=List[FAQResponse])
 def get_faqs(db: SessionDep, skip: int = 0, limit: int = 100, lang: Optional[str] = Query(None)):
-    faqs = faq_service.get_faqs(db, skip, limit)
+    faqs = faq_service.get_faqs(db, skip, limit, active_only=True)
     results = [_enrich_faq(f) for f in faqs]
     
     if lang and lang.lower() != 'en':
@@ -30,7 +30,7 @@ def get_faqs(db: SessionDep, skip: int = 0, limit: int = 100, lang: Optional[str
 
 @router.get("/{faq_id}", response_model=FAQResponse)
 def get_faq(faq_id: int, db: SessionDep, lang: Optional[str] = Query(None)):
-    faq = db.query(faq_crud.FAQ).filter(faq_crud.FAQ.id == faq_id).first()
+    faq = faq_service.get_faq(db, faq_id, active_only=True)
     if not faq:
         raise HTTPException(status_code=404, detail="FAQ not found")
     

@@ -2,11 +2,17 @@ from sqlalchemy.orm import Session
 from app.models.support import FAQ
 from app.schemas.support import FAQCreate, FAQUpdate
 
-def get_faq(db: Session, faq_id: int):
-    return db.query(FAQ).filter(FAQ.id == faq_id).first()
+def get_faq(db: Session, faq_id: int, active_only: bool = False):
+    query = db.query(FAQ).filter(FAQ.id == faq_id)
+    if active_only:
+        query = query.filter(FAQ.is_active.is_(True))
+    return query.first()
 
-def get_faqs(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(FAQ).order_by(FAQ.order_num.asc()).offset(skip).limit(limit).all()
+def get_faqs(db: Session, skip: int = 0, limit: int = 100, active_only: bool = False):
+    query = db.query(FAQ)
+    if active_only:
+        query = query.filter(FAQ.is_active.is_(True))
+    return query.order_by(FAQ.order_num.asc()).offset(skip).limit(limit).all()
 
 def create_faq(db: Session, faq: FAQCreate, embedding: list = None):
     db_faq = FAQ(

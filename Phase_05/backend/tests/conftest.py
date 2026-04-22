@@ -1,15 +1,42 @@
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from app.main import app
 from app.db.database import get_db
 from app.core.config import settings
+from app.models.support import (
+    AiQueryLog,
+    FAQ,
+    ForumCategory,
+    ForumPost,
+    ForumTopic,
+    ReportedContent,
+    SUPPORT_SCHEMA,
+    SupportUserRoleAssignment,
+)
 
 # Create an engine bound to the test database
 # We use the same URL but wrap operations in transactions
 engine = create_engine(settings.database_url)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def ensure_support_tables():
+    support_tables = [
+        ForumCategory.__table__,
+        ForumTopic.__table__,
+        ForumPost.__table__,
+        FAQ.__table__,
+        AiQueryLog.__table__,
+        SupportUserRoleAssignment.__table__,
+        ReportedContent.__table__,
+    ]
+    with engine.begin() as connection:
+        connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {SUPPORT_SCHEMA}"))
+        for table in support_tables:
+            table.create(bind=connection, checkfirst=True)
 
 @pytest.fixture(scope="session")
 def client():

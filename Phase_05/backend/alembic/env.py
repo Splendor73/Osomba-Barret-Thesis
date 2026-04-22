@@ -2,6 +2,7 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+from sqlalchemy import text
 
 from alembic import context
 
@@ -29,6 +30,11 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
+
+def include_object(object_, name, type_, reflected, compare_to):
+    schema = getattr(object_, "schema", None)
+    return schema == settings.SUPPORT_DB_SCHEMA
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -53,6 +59,10 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_schemas=True,
+        include_object=include_object,
+        version_table=settings.SUPPORT_DB_VERSION_TABLE,
+        version_table_schema=settings.SUPPORT_DB_SCHEMA,
     )
 
     with context.begin_transaction():
@@ -77,8 +87,16 @@ def run_migrations_online() -> None:
     connectable = create_engine(url)
 
     with connectable.connect() as connection:
+        connection.execute(
+            text(f"CREATE SCHEMA IF NOT EXISTS {settings.SUPPORT_DB_SCHEMA}")
+        )
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            include_schemas=True,
+            include_object=include_object,
+            version_table=settings.SUPPORT_DB_VERSION_TABLE,
+            version_table_schema=settings.SUPPORT_DB_SCHEMA,
         )
 
         with context.begin_transaction():

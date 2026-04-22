@@ -112,6 +112,7 @@ def search_similar_content(db: Session, query_vector: list[float], limit: int = 
     faq_results = (
         db.query(FAQ, FAQ.embedding.cosine_distance(query_vector).label("distance"))
         .filter(FAQ.embedding.isnot(None))
+        .filter(FAQ.is_active.is_(True))
         .filter(FAQ.embedding.cosine_distance(query_vector) < max_distance)
         .order_by(FAQ.embedding.cosine_distance(query_vector))
         .limit(limit)
@@ -122,6 +123,7 @@ def search_similar_content(db: Session, query_vector: list[float], limit: int = 
     topic_results = (
         db.query(ForumTopic, ForumTopic.embedding.cosine_distance(query_vector).label("distance"))
         .filter(ForumTopic.embedding.isnot(None))
+        .filter(ForumTopic.is_deleted.is_(False))
         .filter(ForumTopic.embedding.cosine_distance(query_vector) < max_distance)
         .order_by(ForumTopic.embedding.cosine_distance(query_vector))
         .limit(limit)

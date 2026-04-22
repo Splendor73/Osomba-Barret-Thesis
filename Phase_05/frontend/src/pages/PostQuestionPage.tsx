@@ -100,11 +100,11 @@ export function PostQuestionPage() {
     return (
       <div className="min-h-screen bg-[#F67C01] flex items-center justify-center relative">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[40%] bg-[#21825C]/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-[-10%] left-[-5%] w-[50%] h-[35%] bg-[#4E8149]/20 rounded-full blur-3xl" />
+          <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[40%] bg-[#F89C4A]/25 rounded-full blur-3xl" />
+          <div className="absolute bottom-[-10%] left-[-5%] w-[50%] h-[35%] bg-[#F67C01]/20 rounded-full blur-3xl" />
         </div>
         <div className="relative bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-8 max-w-md text-center">
-          <CheckCircle className="w-16 h-16 text-[#46BB39] mx-auto mb-4" />
+          <CheckCircle className="w-16 h-16 text-[#F67C01] mx-auto mb-4" />
           <h2 className="mb-2 text-gray-900">{t('post.success_title')}</h2>
           <p className="text-gray-600">{t('post.success_redirect')}</p>
         </div>
@@ -115,8 +115,8 @@ export function PostQuestionPage() {
   return (
     <div className="min-h-screen bg-[#F67C01] py-8 relative">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[40%] bg-[#21825C]/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[50%] h-[35%] bg-[#4E8149]/20 rounded-full blur-3xl" />
+        <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[40%] bg-[#F89C4A]/25 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[50%] h-[35%] bg-[#F67C01]/20 rounded-full blur-3xl" />
       </div>
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

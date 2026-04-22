@@ -17,6 +17,8 @@
     "settings": "Settings",
     "toggle_language": "Toggle Language",
     "language": "Language",
+    "open_menu": "Open menu",
+    "close_menu": "Close menu",
     "agent": "Agent",
     "admin": "Admin"
   },
@@ -175,6 +177,13 @@
     "browse_all": "Browse all FAQs →",
     "edit_faq": "Edit FAQ"
   },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "This is placeholder contact information for Osomba Support.",
+    "email_label": "Email",
+    "phone_label": "Phone",
+    "placeholder_note": "Placeholder contact details for now."
+  },
   "login": {
     "welcome": "Welcome Back",
     "subtitle": "Sign in to your account",
@@ -184,7 +193,8 @@
     "password_placeholder": "Enter your password",
     "signing_in": "Signing in...",
     "sign_in": "Sign In",
-    "error": "Failed to login"
+    "error": "Failed to login",
+    "support_write_required": "Sign in to post or report in Osomba Support."
   },
   "register": {
     "verify_email": "Verify Email",
@@ -236,8 +246,11 @@
     "col_author": "Author",
     "col_posted": "Posted",
     "all_caught_up": "All caught up! No unanswered threads.",
+    "no_matching_threads": "No unanswered threads match the current filters.",
     "check_back": "Great work! Check back later.",
+    "try_adjusting_filters": "Try changing the filters or search to see more threads.",
     "load_error": "Failed to load threads.",
+    "matching_filters": "Matching filters",
     "over_24h": "Over 24h old",
     "fallback_name": "Support Agent",
     "dashboard": "Dashboard",

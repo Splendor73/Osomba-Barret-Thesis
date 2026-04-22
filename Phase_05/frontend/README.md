@@ -1,154 +1,101 @@
-# Osomba Support Forum — Frontend
+# Osomba Support Frontend
 
-React + TypeScript + Tailwind CSS frontend for the Osomba Customer Care Forum, FAQ system, and AI Help Board. Built as part of the Barrett Honors Thesis project.
+Separate React frontend for the Osomba Support forum, FAQ, AI help, and moderation dashboard.
 
-## Tech Stack
+## Production role
 
-| Layer | Technology |
-| --- | --- |
-| Framework | React 18 + Vite |
-| Language | TypeScript |
-| Styling | Tailwind CSS |
-| HTTP Client | Axios |
-| Auth | AWS Amplify (Cognito) |
-| Routing | react-router-dom |
-| Charts | Recharts |
-| i18n | Custom EN/FR translation system |
+This frontend deploys separately from the marketplace frontend, but it uses the same Osomba Cognito user pool and points to the separate support backend.
 
-## Pages
+Production frontend:
 
-| Route | Page | Access |
-| --- | --- | --- |
-| `/` | Home — FAQ + forum posts, unified search bar | Login required |
-| `/thread/:id` | Thread Detail — question, replies, official answer | Login required |
-| `/faq/:id` | FAQ Detail — full answer, voting, related FAQs | Login required |
-| `/ai-help` | AI Help Board — semantic search with confidence scores | Login required |
-| `/post` | Post Question — create new forum thread | Login required |
-| `/agent-dashboard` | Agent Dashboard — open/unanswered threads queue | Agent or Admin |
-| `/analytics` | Analytics Dashboard — deflection rate, response time, charts | Admin only |
-| `/admin/users` | User Management — search users, change roles | Admin only |
-| `/admin/categories` | Category Management — create/edit support categories | Admin only |
-| `/settings` | Account Settings — notification preferences | Login required |
-| `/login` | Login Page | Public |
-| `/register` | Register Page | Public |
+- `https://support.osomba.com`
 
-## Features
+Production API target:
 
-### Customer Features
-- Browse forum threads and FAQ articles on a unified home page
-- Search across FAQs and forum posts with one search bar
-- AI Help Board with semantic search, confidence stars (out of 5), and percentage match
-- Post new questions with category selection and tips sidebar
-- Vote on FAQ helpfulness (thumbs up/down)
+- `https://api.osomba.com/support-api/api/v1`
 
-### Agent Features
-- Agent Dashboard with filtered view of unanswered threads
-- Mark replies as official answers (triggers email notification via SES)
-- Lock/unlock threads
-- Language toggle — switch between English and French (on-demand translation via Nova Micro)
+## Current product behavior
 
-### Admin Features
-- Analytics Dashboard with 6 metric cards (total posts, answered, FAQs, AI queries, deflection rate, avg response time)
-- Charts showing posts over time and category distribution
-- User Management — search by email, change roles (customer/agent/admin)
-- Category Management — create, edit, archive support categories
-- Convert to FAQ — turn official forum answers into FAQ articles with one click
-- Undo FAQ — revert a converted FAQ back to a normal post
+- guest users can browse FAQ, forum threads, search, filters, and thread detail without login
+- posting, replying, and reporting require login
+- support moderation is available to agents and admins
+- `Reported Content` and `User Review` are available from the support admin sidebar
+- blocked users are visible in `User Review`
+- French and English are supported
+- Contact Us uses placeholder support details:
+  - `support@osomba.com`
+  - `+1 800 500 0011`
 
-## Project Structure
+## Key routes
 
-```
-src/
-├── App.tsx                    # Router and layout
-├── pages/
-│   ├── HomePage.tsx           # Forum + FAQ list with search
-│   ├── ThreadDetailPage.tsx   # Thread with replies and agent controls
-│   ├── FAQPage.tsx            # FAQ detail with voting
-│   ├── AIHelpPage.tsx         # AI semantic search
-│   ├── PostQuestionPage.tsx   # New question form
-│   ├── AgentDashboardPage.tsx # Agent queue
-│   ├── AnalyticsDashboardPage.tsx # Admin KPIs and charts
-│   ├── UserManagementPage.tsx # Role management
-│   ├── CategoryManagementPage.tsx # Category CRUD
-│   ├── SettingsPage.tsx       # User settings
-│   ├── LoginPage.tsx          # Cognito login
-│   └── RegisterPage.tsx       # Cognito registration
-├── components/
-│   ├── Header.tsx             # Nav bar with role-based menu items
-│   ├── Sidebar.tsx            # Category filter sidebar
-│   ├── QuestionCard.tsx       # Thread/FAQ card component
-│   ├── CategoryBadge.tsx      # Category tag component
-│   ├── StatusBadge.tsx        # Open/Answered/Locked badge
-│   ├── ProtectedRoute.tsx     # Auth guard for routes
-│   └── OrganicBackground.tsx  # Decorative background
-├── lib/
-│   ├── api.ts                 # Axios instance with auth interceptor
-│   └── auth.ts                # Cognito auth helpers
-├── context/
-│   ├── AuthContext.tsx         # Auth state (user, role, token)
-│   └── LanguageContext.tsx     # i18n state (EN/FR)
-└── i18n/
-    ├── en.json                # English translations
-    └── fr.json                # French translations
-```
+- `/` — public support home
+- `/thread/:id` — public thread detail
+- `/faq/:id` — public FAQ detail
+- `/ai-help` — public AI/search support surface
+- `/post` — authenticated create-question flow
+- `/contact-us` — placeholder support contact info
+- `/agent-dashboard` — agent/admin moderation and review
 
-## Getting Started
+## Shared auth
 
-### Prerequisites
+Production Cognito values:
 
-- Node.js 18+
-- npm 9+
-- Backend running at `http://localhost:8000` (see `Phase_05/backend/README.md`)
+- `VITE_COGNITO_USER_POOL_ID=us-east-1_vf5HVszbN`
+- `VITE_COGNITO_CLIENT_ID=513m3vscibhska2jie3ganrcn9`
+- `VITE_COGNITO_REGION=us-east-1`
 
-### 1. Install dependencies
+## Local development
 
 ```bash
 cd Phase_05/frontend
 npm install
-```
-
-### 2. Configure environment
-
-Create a `.env` file:
-
-```env
-VITE_API_URL=http://localhost:8000/api/v1
-VITE_COGNITO_USER_POOL_ID=us-east-1_xxxxxxxxx
-VITE_COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
-VITE_COGNITO_REGION=us-east-1
-```
-
-### 3. Start the dev server
-
-```bash
 npm run dev
 ```
 
-Opens at `http://localhost:3000` (or the port shown in terminal).
+Local `.env` should point at the support backend, not the marketplace backend:
 
-### 4. Build for production
+```env
+VITE_API_URL=http://localhost:8000/support-api/api/v1
+VITE_COGNITO_USER_POOL_ID=us-east-1_vf5HVszbN
+VITE_COGNITO_CLIENT_ID=513m3vscibhska2jie3ganrcn9
+VITE_COGNITO_REGION=us-east-1
+```
+
+## Production build and deploy
+
+Build:
 
 ```bash
+cd Phase_05/frontend
+npm install
 npm run build
 ```
 
-Output goes to `build/`. This is a static bundle that can be deployed to S3 + CloudFront or Amplify Hosting.
+Production env file:
 
-## Demo Accounts
+- `.env.production`
 
-Log in at `http://localhost:3000/login`:
+Static hosting target:
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Customer | `customer@osomba.com` | `OsombaDemo123!` |
-| Agent | `agent@osomba.com` | `OsombaDemo123!` |
-| Admin | `admin@osomba.com` | `OsombaDemo123!` |
+- S3 bucket: `osomba-support-frontend-prod-281505305629`
+- CloudFront distribution: `E1K1SA4V13MTNM`
 
-## Bilingual Support
+Deploy flow:
 
-The app supports English and French. Users can toggle the language from the header. When switched to French:
+1. build the Vite bundle
+2. sync `build/` to the S3 bucket
+3. invalidate CloudFront
+4. verify `https://support.osomba.com`
 
-- Home page titles are translated on demand
-- Thread content is translated when opened
-- All UI labels switch to French (`src/i18n/fr.json`)
-- Translation is powered by Amazon Nova Micro via the backend
+## Verification checklist
+
+After deploy, verify:
+
+- home page loads for guests
+- forum and FAQ pages are readable without login
+- post/reply/report are blocked for guests
+- authenticated users can post and reply
+- `Reported Content` and `User Review` render correctly for agent/admin
+- blocked users appear in `User Review`
+- mobile navbar still works
+- support API base URL is `/support-api/api/v1`
