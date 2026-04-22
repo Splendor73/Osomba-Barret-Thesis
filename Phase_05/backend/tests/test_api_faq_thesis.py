@@ -1,7 +1,10 @@
 import pytest
 from app.main import app
 from app.api.dependencies import get_current_user, get_admin_user
+from app.core.config import settings
 from app.models.user import User
+
+API_PREFIX = f"{settings.SUPPORT_API_PREFIX}{settings.API_V1_STR}"
 
 @pytest.fixture
 def mock_user(db_session):
@@ -36,9 +39,38 @@ def mock_admin(db_session):
     return admin
 
 def test_read_faqs(client):
-    response = client.get("/api/v1/support/faq/")
+    response = client.get(f"{API_PREFIX}/support/faq/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
+
+def test_public_faq_reads_hide_inactive_entries(client, db_session):
+    from app.models.support import FAQ
+
+    active_faq = FAQ(
+        question="Visible FAQ",
+        answer="This answer should remain public.",
+        is_active=True,
+        order_num=1,
+    )
+    hidden_faq = FAQ(
+        question="Hidden FAQ",
+        answer="This answer should stay private.",
+        is_active=False,
+        order_num=2,
+    )
+    db_session.add_all([active_faq, hidden_faq])
+    db_session.commit()
+    db_session.refresh(active_faq)
+    db_session.refresh(hidden_faq)
+
+    list_resp = client.get(f"{API_PREFIX}/support/faq/")
+    assert list_resp.status_code == 200
+    questions = [faq["question"] for faq in list_resp.json()]
+    assert "Visible FAQ" in questions
+    assert "Hidden FAQ" not in questions
+
+    detail_resp = client.get(f"{API_PREFIX}/support/faq/{hidden_faq.id}")
+    assert detail_resp.status_code == 404
 
 def test_create_and_update_faq_as_admin(client, mock_admin):
     from app.api.dependencies import get_agent_user
@@ -52,7 +84,7 @@ def test_create_and_update_faq_as_admin(client, mock_admin):
     try:
         # Create FAQ
         response = client.post(
-            "/api/v1/support/faq/",
+            f"{API_PREFIX}/support/faq/",
             json={"question": "Test FAQ", "answer": "Test Answer", "is_active": True, "order_num": 1}
         )
         assert response.status_code == 200
@@ -62,7 +94,7 @@ def test_create_and_update_faq_as_admin(client, mock_admin):
         
         # Update FAQ
         update_resp = client.put(
-            f"/api/v1/support/faq/{faq_id}",
+            f"{API_PREFIX}/support/faq/{faq_id}",
             json={"question": "Updated FAQ", "answer": "Updated Answer"}
         )
         assert update_resp.status_code == 200
@@ -70,7 +102,7 @@ def test_create_and_update_faq_as_admin(client, mock_admin):
         
         # Vote on FAQ
         app.dependency_overrides[get_current_user] = lambda: User(user_id=1006)
-        vote_resp = client.post(f"/api/v1/support/faq/{faq_id}/vote", json={"is_helpful": True})
+        vote_resp = client.post(f"{API_PREFIX}/support/faq/{faq_id}/vote", json={"is_helpful": True})
         assert vote_resp.status_code == 200
         assert vote_resp.json()["helpful_count"] == 1
         

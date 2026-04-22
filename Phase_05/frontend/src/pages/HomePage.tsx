@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { OrganicBackground } from "../components/OrganicBackground";
+import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 
 import api from "../lib/api";
@@ -44,6 +45,7 @@ export function HomePage() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { language, t } = useLanguage();
 
   const getStars = (confidence: number) => {
@@ -51,11 +53,26 @@ export function HomePage() {
     return { filled, total: 5 };
   };
 
+  const navigateToPost = (prefillQuery?: string) => {
+    if (isAuthenticated) {
+      navigate(prefillQuery ? `/post?q=${encodeURIComponent(prefillQuery)}` : "/post");
+      return;
+    }
+
+    const search = prefillQuery ? `?q=${encodeURIComponent(prefillQuery)}` : "";
+    navigate("/login", {
+      state: {
+        from: { pathname: "/post", search },
+        message: t('login.support_write_required'),
+      },
+    });
+  };
+
   const handleEscalate = async () => {
     if (sessionId) {
       try { await api.post('/support/ai/escalate', { session_id: sessionId }); } catch {}
     }
-    navigate(`/post?q=${encodeURIComponent(searchQuery)}`);
+    navigateToPost(searchQuery);
   };
 
   const handleResultClick = (result: AiResult) => {
@@ -183,7 +200,7 @@ export function HomePage() {
       <section className="relative py-8 md:py-12 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="mb-6">
-            <h1 className="mb-2 bg-gradient-to-r from-[#F67C01] to-[#46BB39] bg-clip-text text-transparent">
+            <h1 className="mb-2 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] bg-clip-text text-transparent">
               {t('home.title')}
             </h1>
             <p className="text-gray-600 text-lg">

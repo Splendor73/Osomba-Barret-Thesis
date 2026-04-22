@@ -19,6 +19,8 @@ def search_support_content(db: Session, query: str, user_id: int = None):
     # 2. Search FAQs using pgvector cosine distance: <->
     faq_results = (
         db.query(FAQ, FAQ.embedding.cosine_distance(query_vector).label("distance"))
+        .filter(FAQ.embedding.isnot(None))
+        .filter(FAQ.is_active.is_(True))
         .filter(FAQ.embedding.cosine_distance(query_vector) < (1 - threshold))
         .order_by(FAQ.embedding.cosine_distance(query_vector))
         .limit(5)
@@ -28,6 +30,8 @@ def search_support_content(db: Session, query: str, user_id: int = None):
     # 3. Search Forum Topics using pgvector cosine distance: <->
     topic_results = (
         db.query(ForumTopic, ForumTopic.embedding.cosine_distance(query_vector).label("distance"))
+        .filter(ForumTopic.embedding.isnot(None))
+        .filter(ForumTopic.is_deleted.is_(False))
         .filter(ForumTopic.embedding.cosine_distance(query_vector) < (1 - threshold))
         .order_by(ForumTopic.embedding.cosine_distance(query_vector))
         .limit(5)

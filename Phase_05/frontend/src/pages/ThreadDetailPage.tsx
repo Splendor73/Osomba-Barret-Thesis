@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { CheckCircle, ChevronLeft, Bookmark, BookmarkX, Lock, Unlock, Send, X, User, Trash2 } from "lucide-react";
+import { CheckCircle, ChevronLeft, Bookmark, BookmarkX, Lock, Unlock, Send, X, User, Trash2, Flag } from "lucide-react";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { StatusBadge } from "../components/StatusBadge";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -141,9 +141,10 @@ export function ThreadDetailPage() {
       setReplyText("");
       setIsOfficialAnswer(false);
       fetchThreadData();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to post reply:", err);
-      setToast({ message: t('thread.reply_error'), type: "error" });
+      const detail = err.response?.data?.detail || t('thread.reply_error');
+      setToast({ message: detail, type: "error" });
     } finally {
       setSubmittingReply(false);
     }
@@ -193,6 +194,28 @@ export function ThreadDetailPage() {
       fetchThreadData();
     } catch (err) {
       setToast({ message: t('thread.unlock_error'), type: "error" });
+    }
+  };
+
+  const handleReportContent = async (type: 'topic' | 'post', itemId: number) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    const reason = window.prompt("Please provide a reason for reporting this content:");
+    if (!reason) return;
+    
+    try {
+      await api.post('/support/reports', {
+        topic_id: type === 'topic' ? itemId : null,
+        post_id: type === 'post' ? itemId : null,
+        reason
+      });
+      setToast({ message: "Content reported successfully.", type: "success" });
+    } catch (err: any) {
+      console.error("Failed to report content:", err);
+      const detail = err.response?.data?.detail || "Failed to submit report.";
+      setToast({ message: detail, type: "error" });
     }
   };
 
@@ -262,7 +285,7 @@ export function ThreadDetailPage() {
 
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-lg shadow-lg text-white font-medium transition-all ${
-          toast.type === 'success' ? 'bg-[#46BB39]' : 'bg-red-500'
+          toast.type === 'success' ? 'bg-[#F67C01]' : 'bg-red-500'
         }`}>
           {toast.message}
           <button onClick={() => setToast(null)} className="ml-3 text-white/80 hover:text-white">&times;</button>
@@ -282,15 +305,24 @@ export function ThreadDetailPage() {
           <div className="flex-1">
             {/* Thread Card */}
             <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 mb-6 border border-gray-100 relative">
-              {role === 'admin' && (
-                <button 
-                  onClick={handleDeleteTopic}
-                  className="absolute top-4 right-4 p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
-                  title="Delete Topic"
+              <div className="absolute top-4 right-4 flex items-center gap-2">
+                <button
+                  onClick={() => handleReportContent('topic', topic.id)}
+                  className="p-2 text-gray-400 hover:bg-gray-50 hover:text-[#F67C01] rounded-lg transition-colors"
+                  title="Report Thread"
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Flag className="w-4 h-4" />
                 </button>
-              )}
+                {(role === 'agent' || role === 'admin') && (
+                  <button 
+                    onClick={handleDeleteTopic}
+                    className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                    title="Delete Topic"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
               <div className="flex items-start gap-3 mb-4 flex-wrap pr-10">
                 <CategoryBadge category={topic.category_name} icon={topic.category_icon || "📝"} size="small" />
                 <StatusBadge status={topic.status} size="small" />
@@ -319,19 +351,28 @@ export function ThreadDetailPage() {
 
             {/* Official Answer */}
             {officialAnswer && (
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-sm p-6 md:p-8 border-l-4 border-[#46BB39] mb-6 relative">
-                {role === 'admin' && (
+              <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl shadow-sm p-6 md:p-8 border-l-4 border-[#F67C01] mb-6 relative">
+                <div className="absolute top-4 right-4 flex items-center gap-2">
                   <button 
-                    onClick={() => handleDeletePost(officialAnswer.id)}
-                    className="absolute top-4 right-4 p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
-                    title="Delete Post"
+                    onClick={() => handleReportContent('post', officialAnswer.id)}
+                    className="p-2 text-gray-400 hover:bg-gray-50 hover:text-[#F67C01] rounded-lg transition-colors"
+                    title="Report Post"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Flag className="w-4 h-4" />
                   </button>
-                )}
+                  {(role === 'agent' || role === 'admin') && (
+                    <button 
+                      onClick={() => handleDeletePost(officialAnswer.id)}
+                      className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                      title="Delete Post"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 mb-4">
-                  <CheckCircle className="w-5 h-5 text-[#46BB39]" />
-                  <span className="px-3 py-1 bg-[#46BB39] text-white rounded-full text-sm shadow-sm font-medium">
+                  <CheckCircle className="w-5 h-5 text-[#F67C01]" />
+                  <span className="px-3 py-1 bg-[#F67C01] text-white rounded-full text-sm shadow-sm font-medium">
                     {t('thread.official_answer')}
                   </span>
                 </div>
@@ -359,15 +400,24 @@ export function ThreadDetailPage() {
             {/* Regular Posts */}
             {regularPosts.map((post) => (
               <div key={post.id} className="bg-white rounded-xl shadow-sm p-6 md:p-8 mb-6 border border-gray-100 relative">
-                {role === 'admin' && (
+                <div className="absolute top-4 right-4 flex items-center gap-2">
                   <button 
-                    onClick={() => handleDeletePost(post.id)}
-                    className="absolute top-4 right-4 p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
-                    title="Delete Post"
+                    onClick={() => handleReportContent('post', post.id)}
+                    className="p-2 text-gray-400 hover:bg-gray-50 hover:text-[#F67C01] rounded-lg transition-colors"
+                    title="Report Post"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Flag className="w-4 h-4" />
                   </button>
-                )}
+                  {(role === 'agent' || role === 'admin') && (
+                    <button 
+                      onClick={() => handleDeletePost(post.id)}
+                      className="p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                      title="Delete Post"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
                 <div className="flex items-center gap-3 mb-4">
                   <ImageWithFallback
                     src={post.author_avatar}
@@ -418,10 +468,10 @@ export function ThreadDetailPage() {
                             type="checkbox"
                             checked={isOfficialAnswer}
                             onChange={(e) => setIsOfficialAnswer(e.target.checked)}
-                            className="w-4 h-4 accent-[#46BB39]"
+                            className="w-4 h-4 accent-[#F67C01]"
                           />
                           <span className="text-sm font-medium text-gray-700">{t('thread.mark_official')}</span>
-                          <CheckCircle className={`w-4 h-4 ${isOfficialAnswer ? 'text-[#46BB39]' : 'text-gray-300'}`} />
+                          <CheckCircle className={`w-4 h-4 ${isOfficialAnswer ? 'text-[#F67C01]' : 'text-gray-300'}`} />
                         </label>
                       )}
                       <div className="flex items-center gap-3">
@@ -429,7 +479,7 @@ export function ThreadDetailPage() {
                           onClick={handleSubmitReply}
                           className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
                             submittingReply ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            : isOfficialAnswer ? "bg-[#46BB39] text-white hover:bg-[#3ca330]"
+                            : isOfficialAnswer ? "bg-[#F67C01] text-white hover:bg-[#d56b01]"
                             : "bg-[#F67C01] text-white hover:bg-[#d56b01]"
                           }`}
                           disabled={submittingReply || !replyText.trim()}
@@ -494,7 +544,7 @@ export function ThreadDetailPage() {
                   ) : (
                     <button
                       onClick={handleUnlockThread}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#46BB39] text-white rounded-lg hover:bg-[#3ca330] transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-[#F67C01] text-white rounded-lg hover:bg-[#d56b01] transition-colors"
                     >
                       <Unlock className="w-4 h-4" />
                       {t('thread.unlock_thread')}
@@ -559,7 +609,7 @@ export function ThreadDetailPage() {
                     </div>
                     <div className="flex justify-between items-center text-sm mt-1">
                       <span className="text-gray-700">{t('thread.resolved')}</span>
-                      <span className="font-medium bg-green-100 text-green-700 px-2 rounded-full">{context.past_resolved_posts}</span>
+                      <span className="font-medium bg-orange-100 text-[#B45309] px-2 rounded-full">{context.past_resolved_posts}</span>
                     </div>
                   </div>
 
@@ -574,7 +624,7 @@ export function ThreadDetailPage() {
                           </div>
                           <div className="flex justify-between text-xs text-gray-500">
                             <span>{order.items_count} {t('thread.items')} • {order.shipping_status}</span>
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${order.payment_status === 'FAILED' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${order.payment_status === 'FAILED' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-[#B45309]'}`}>
                               {order.payment_status}
                             </span>
                           </div>

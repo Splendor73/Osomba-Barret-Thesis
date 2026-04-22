@@ -17,7 +17,8 @@ export const LoginPage = () => {
   const { refreshSession } = useAuth();
   const { t } = useLanguage();
 
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from || '/';
+  const loginMessage = location.state?.message;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,13 +48,14 @@ export const LoginPage = () => {
 
         {/* Card */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="h-1.5 bg-gradient-to-r from-[#F67C01] to-[#46BB39]" />
+          <div className="h-1.5 bg-gradient-to-r from-[#F67C01] to-[#F89C4A]" />
           <div className="p-8 space-y-6">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900">{t('login.welcome')}</h1>
               <p className="mt-1 text-sm text-gray-500">{t('login.subtitle')}</p>
             </div>
 
+            {loginMessage && <div className="p-3 text-sm text-[#B45309] bg-orange-50 rounded-lg">{loginMessage}</div>}
             {error && <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">{error}</div>}
 
             <form onSubmit={handleSubmit} className="space-y-4">

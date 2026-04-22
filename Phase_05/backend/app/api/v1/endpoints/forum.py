@@ -1,11 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 from app.api.dependencies import SessionDep, CurrentUserDep, AdminUserDep, AgentUserDep
-from app.schemas.support import ForumTopicCreate, ForumTopicResponse, UIForumTopicResponse, ForumPostCreate, ForumPostResponse, UIForumPostResponse, OfficialAnswerRequest, TopicLockRequest, ForumTopicUpdate, ForumPostUpdate, ConvertToFAQRequest, FAQCreate, FAQResponse
+from app.core.config import settings
+from app.schemas.support import ForumTopicCreate, ForumTopicResponse, UIForumTopicResponse, ForumPostCreate, ForumPostResponse, UIForumPostResponse, OfficialAnswerRequest, TopicLockRequest, ForumTopicUpdate, ForumPostUpdate, ConvertToFAQRequest, FAQCreate, FAQResponse, ReportRequest
 from app.services import forum_service
 from app.crud import faq as faq_crud
 from app.services.ai_service import generate_embedding, translate_text
 from app.services.email_service import send_notification_email
+from app.services.support_access_service import ensure_support_write_access
 from app.models.user import User
 
 router = APIRouter()
@@ -36,11 +38,16 @@ def get_topic(topic_id: int, db: SessionDep, lang: Optional[str] = Query(None)):
 
 @router.post("/topics", response_model=UIForumTopicResponse)
 def create_topic(topic: ForumTopicCreate, db: SessionDep, current_user: CurrentUserDep):
+    ensure_support_write_access(current_user)
     return forum_service.create_topic(db, topic, current_user.user_id)
 
 @router.get("/topics/{topic_id}/posts", response_model=List[UIForumPostResponse])
 def get_posts(topic_id: int, db: SessionDep, skip: int = 0, limit: int = 100, lang: Optional[str] = Query(None)):
     """Returns replies for a topic. AI translates content of all replies in this thread."""
+    topic = forum_service.get_topic(db, topic_id)
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
     posts = forum_service.get_posts_by_topic(db, topic_id, skip, limit)
     
     if lang and lang.lower() != 'en':
@@ -51,9 +58,12 @@ def get_posts(topic_id: int, db: SessionDep, skip: int = 0, limit: int = 100, la
 
 @router.post("/topics/{topic_id}/posts", response_model=UIForumPostResponse)
 def create_post(topic_id: int, post: ForumPostCreate, db: SessionDep, current_user: CurrentUserDep):
+    ensure_support_write_access(current_user)
     topic = forum_service.get_topic(db, topic_id)
     if not topic:
         raise HTTPException(status_code=404, detail="Topic not found")
+    if topic.is_locked:
+        raise HTTPException(status_code=423, detail="Topic is locked")
 
     post.topic_id = topic_id
     return forum_service.create_post(db, post, current_user.user_id)
@@ -88,6 +98,7 @@ def official_answer(topic_id: int, req: OfficialAnswerRequest, db: SessionDep, a
         topic_author = db.query(User).filter(User.user_id == topic.user_id).first()
         if topic_author and topic_author.email:
             subject = f"Official Answer: {topic.title}"
+            thread_url = f"{settings.SUPPORT_FRONTEND_URL.rstrip('/')}/thread/{topic.id}"
             html_content = f"""
             <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>
                 <h2 style='color: #F67C01;'>Osomba Help</h2>
@@ -97,7 +108,7 @@ def official_answer(topic_id: int, req: OfficialAnswerRequest, db: SessionDep, a
                     <h3 style='margin-top: 0;'>{topic.title}</h3>
                     <p><i>{updated_post.content[:200]}...</i></p>
                 </div>
-                <p>You can view the full answer here: <a href='https://osomba.com/thread/{topic.id}' style='color: #F67C01; font-weight: bold;'>View Thread</a></p>
+                <p>You can view the full answer here: <a href='{thread_url}' style='color: #F67C01; font-weight: bold;'>View Thread</a></p>
                 <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;' />
                 <p style='font-size: 12px; color: #888;'>This is an automated notification from Osomba Marketplace. Please do not reply to this email.</p>
             </div>
@@ -160,7 +171,7 @@ def faq_status(topic_id: int, post_id: int, db: SessionDep, admin: AdminUserDep)
     return {"is_faq": faq is not None, "faq_id": faq.id if faq else None}
 
 @router.delete("/topics/{topic_id}")
-def delete_topic(topic_id: int, db: SessionDep, admin: AdminUserDep):
+def delete_topic(topic_id: int, db: SessionDep, agent: AgentUserDep):
     topic = forum_service.get_topic(db, topic_id)
     if not topic:
         raise HTTPException(status_code=404, detail="Topic not found")
@@ -169,7 +180,7 @@ def delete_topic(topic_id: int, db: SessionDep, admin: AdminUserDep):
     return {"detail": "Topic deleted successfully"}
 
 @router.delete("/topics/{topic_id}/posts/{post_id}")
-def delete_post(topic_id: int, post_id: int, db: SessionDep, admin: AdminUserDep):
+def delete_post(topic_id: int, post_id: int, db: SessionDep, agent: AgentUserDep):
     post = forum_service.forum_crud.get_post(db, post_id)
     if not post or post.topic_id != topic_id:
         raise HTTPException(status_code=404, detail="Post not found")
@@ -191,3 +202,38 @@ def undo_faq(topic_id: int, post_id: int, db: SessionDep, admin: AdminUserDep):
     faq_crud.delete_faq(db, faq.id)
     return {"detail": "FAQ reverted successfully"}
 
+@router.post("/reports")
+def create_report(req: ReportRequest, db: SessionDep, current_user: CurrentUserDep):
+    ensure_support_write_access(current_user)
+    if not req.topic_id and not req.post_id:
+        raise HTTPException(status_code=400, detail="Must provide topic_id or post_id")
+    from app.models.support import ReportedContent
+
+    if req.post_id:
+        post = forum_service.forum_crud.get_post(db, req.post_id)
+        if not post:
+            raise HTTPException(status_code=404, detail="Post not found")
+    if req.topic_id:
+        topic = forum_service.get_topic(db, req.topic_id)
+        if not topic:
+            raise HTTPException(status_code=404, detail="Topic not found")
+    
+    # Simple deduplication check
+    existing = db.query(ReportedContent).filter(
+        ReportedContent.reporter_id == current_user.user_id,
+        ReportedContent.topic_id == req.topic_id,
+        ReportedContent.post_id == req.post_id
+    ).first()
+    
+    if existing:
+        return {"detail": "Report submitted successfully"} # Idempotent success
+        
+    report = ReportedContent(
+        reporter_id=current_user.user_id,
+        topic_id=req.topic_id,
+        post_id=req.post_id,
+        reason=req.reason
+    )
+    db.add(report)
+    db.commit()
+    return {"detail": "Report submitted successfully"}

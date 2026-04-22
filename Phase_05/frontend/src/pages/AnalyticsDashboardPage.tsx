@@ -183,22 +183,22 @@ export function AnalyticsDashboardPage() {
                   <MessageSquare className="w-5 h-5 text-gray-400" />
                 </div>
                 <p className="text-3xl text-gray-900 mb-2 font-bold">{overview.total_posts}</p>
-                <div className="flex items-center gap-1 text-sm text-[#10B981]">
+                <div className="flex items-center gap-1 text-sm text-[#F67C01]">
                   <TrendingUp className="w-4 h-4" />
                   <span>{t('status.all_time')}</span>
                 </div>
                 <div className="mt-4 h-1 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#10B981] rounded-full" style={{ width: "100%" }}></div>
+                  <div className="h-full bg-[#F67C01] rounded-full" style={{ width: "100%" }}></div>
                 </div>
               </div>
 
               <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-sm text-gray-600 font-medium">{t('analytics.deflection_rate')}</p>
-                  <CheckCircle className="w-5 h-5 text-[#10B981]" />
+                  <CheckCircle className="w-5 h-5 text-[#F59E0B]" />
                 </div>
                 <p className="text-3xl text-gray-900 mb-2 font-bold">{overview.deflection_rate}%</p>
-                <div className="flex items-center gap-1 text-sm text-[#10B981]">
+                <div className="flex items-center gap-1 text-sm text-[#F59E0B]">
                   <span>{t('analytics.ai_accepted')}</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-3 font-medium">{t('analytics.queries_resolved')}</p>
@@ -249,7 +249,7 @@ export function AnalyticsDashboardPage() {
                   <XAxis dataKey="category" stroke="#6B7280" angle={-45} textAnchor="end" height={80} interval={0} tick={{ fontSize: 12 }} />
                   <YAxis stroke="#6B7280" />
                   <Tooltip cursor={{ fill: '#F3F4F6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                  <Bar dataKey="count" fill="#46BB39" radius={[6, 6, 0, 0]} name={t('analytics.thread_count')} />
+                  <Bar dataKey="count" fill="#F67C01" radius={[6, 6, 0, 0]} name={t('analytics.thread_count')} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

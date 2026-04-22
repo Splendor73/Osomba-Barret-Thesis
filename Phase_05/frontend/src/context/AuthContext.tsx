@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getSession, getUser, getUserRole, logoutUser } from '../lib/auth';
+import { getSession, getSupportSessionUser, getUser, getUserRole, logoutUser } from '../lib/auth';
 
 type Role = 'customer' | 'agent' | 'admin' | null;
 
@@ -33,12 +33,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const session = await getSession();
-      if (session) {
+      const hasValidTokens = Boolean(session?.tokens?.idToken || session?.tokens?.accessToken);
+      if (hasValidTokens) {
         const currentUser = await getUser();
-        const currentRole = await getUserRole();
-        setUser(currentUser);
-        setRole(currentRole);
-        setIsAuthenticated(true);
+        const supportSessionUser = await getSupportSessionUser();
+        if (currentUser) {
+          const currentRole = supportSessionUser?.support_role || await getUserRole();
+          setUser(currentUser);
+          setRole(currentRole);
+          setIsAuthenticated(true);
+        } else {
+          setUser(null);
+          setRole(null);
+          setIsAuthenticated(false);
+        }
       } else {
         setUser(null);
         setRole(null);

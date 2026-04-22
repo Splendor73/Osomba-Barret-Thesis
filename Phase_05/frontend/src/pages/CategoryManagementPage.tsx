@@ -36,8 +36,8 @@ export function CategoryManagementPage() {
   const { t } = useLanguage();
 
   const navItems = [
-    { icon: MessageSquare, label: t('agent.unanswered'), path: "/agent-dashboard", badge: null },
-    { icon: BarChart3, label: t('nav.analytics'), path: "/admin/analytics", badge: null },
+    { icon: MessageSquare, label: t('agent.dashboard'), path: "/dashboard", badge: null },
+    { icon: BarChart3, label: t('nav.analytics'), path: "/dashboard?tab=analytics", badge: null },
     { icon: Users, label: t('nav.user_management'), path: "/admin/users", badge: null },
     { icon: Settings, label: t('nav.category_management'), path: "/admin/categories", badge: null },
   ];
@@ -203,7 +203,7 @@ export function CategoryManagementPage() {
             />
             <div>
               <p className="text-white text-sm font-medium">{currentUser?.name || currentUser?.full_name || "Admin User"}</p>
-              <p className="text-green-100 text-xs uppercase">{currentRole}</p>
+              <p className="text-orange-100 text-xs uppercase">{currentRole}</p>
             </div>
           </div>
         </div>
@@ -219,7 +219,7 @@ export function CategoryManagementPage() {
             <h1 className="text-gray-900">{t('categories.title')}</h1>
             <button
               onClick={openAddModal}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#46BB39] to-[#21825C] text-white rounded-lg hover:shadow-lg transition-all font-medium"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] text-white rounded-lg hover:shadow-lg transition-all font-medium"
             >
               <Plus className="w-5 h-5" />
               {t('categories.add_new')}
@@ -231,7 +231,7 @@ export function CategoryManagementPage() {
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-gray-600 font-medium">{t('categories.active_categories')}</p>
-                <Settings className="w-5 h-5 text-[#46BB39]" />
+                <Settings className="w-5 h-5 text-[#F67C01]" />
               </div>
               <p className="text-2xl text-gray-900 font-bold">
                 {activeCategories.length}
@@ -287,7 +287,7 @@ export function CategoryManagementPage() {
                           <span className="text-gray-700 font-semibold">{category.postCount}</span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                          <span className="px-3 py-1 bg-orange-100 text-[#B45309] rounded-full text-xs font-medium">
                             {t('status.active')}
                           </span>
                         </td>
@@ -295,7 +295,7 @@ export function CategoryManagementPage() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => openEditModal(category)}
-                              className="p-2 text-[#46BB39] hover:bg-green-50 rounded transition-colors"
+                              className="p-2 text-[#F67C01] hover:bg-orange-50 rounded transition-colors"
                               title={t('buttons.edit')}
                             >
                               <Edit className="w-4 h-4" />
@@ -354,7 +354,7 @@ export function CategoryManagementPage() {
                         <td className="px-6 py-4">
                           <button
                             onClick={() => handleUnarchive(category.id)}
-                            className="text-[#46BB39] hover:text-[#21825C] font-medium text-sm transition-colors"
+                            className="text-[#F67C01] hover:text-[#B45309] font-medium text-sm transition-colors"
                           >
                             {t('buttons.restore')}
                           </button>
@@ -398,7 +398,7 @@ export function CategoryManagementPage() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder={t('categories.name_placeholder')}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#46BB39]"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01]"
                   />
                 </div>
 
@@ -413,7 +413,7 @@ export function CategoryManagementPage() {
                         type="button"
                         onClick={() => setFormData({ ...formData, emoji })}
                         className={`text-2xl p-2 rounded-lg hover:bg-gray-100 transition-colors ${
-                          formData.emoji === emoji ? "bg-green-100 ring-2 ring-[#46BB39]" : ""
+                          formData.emoji === emoji ? "bg-orange-100 ring-2 ring-[#F67C01]" : ""
                         }`}
                       >
                         {emoji}
@@ -431,7 +431,7 @@ export function CategoryManagementPage() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder={t('categories.desc_placeholder')}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#46BB39]"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01]"
                   />
                 </div>
 
@@ -454,7 +454,7 @@ export function CategoryManagementPage() {
                 <button
                   onClick={handleSave}
                   disabled={!formData.name.trim()}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#46BB39] to-[#21825C] text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="w-4 h-4" />
                   {modalMode === "add" ? t('buttons.create') : t('buttons.save_changes')}

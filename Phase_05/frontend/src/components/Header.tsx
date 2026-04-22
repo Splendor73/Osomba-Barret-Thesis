@@ -1,4 +1,4 @@
-import { Menu, X, BarChart3, User, Shield, Plus, LogOut, LogIn, Globe, Settings } from "lucide-react";
+import { MoreVertical, X, BarChart3, Plus, LogOut, LogIn, Globe, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Vector from "../imports/Vector";
@@ -15,6 +15,17 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
   const navigate = useNavigate();
   const { user, role, isAuthenticated, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+  const userName = user?.name || user?.email || user?.username || '';
+  const userRoleLabel = t(`users.${role || 'customer'}`);
+
+  const navigateToLoginForSupportWrite = () => {
+    navigate('/login', {
+      state: {
+        from: { pathname: '/post' },
+        message: t('login.support_write_required'),
+      },
+    });
+  };
 
   return (
     <>
@@ -26,27 +37,40 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-3 h-20">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <button
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? t('nav.close_menu') : t('nav.open_menu')}
               >
                 {mobileMenuOpen ? (
-                  <X className="w-6 h-6 text-gray-700" />
+                  <X className="w-5 h-5 text-gray-700" />
                 ) : (
-                  <Menu className="w-6 h-6 text-gray-700" />
+                  <MoreVertical className="w-5 h-5 text-gray-700" />
                 )}
               </button>
-              <a href="/" className="flex items-center gap-3 group ml-17">
-                <img src="/osomba-logo.png" alt="Osomba" className="h-30 w-auto" />
-              </a>
+
+              <Link to="/" className="flex shrink-0 items-center">
+                <img src="/osomba-logo.png" alt="Osomba" className="h-28 sm:h-32 w-auto" />
+              </Link>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-3">
+              {isAuthenticated && (
+                <div className="min-w-0 flex items-center mr-1 sm:mr-2">
+                  <span className="max-w-[140px] sm:max-w-none truncate text-sm font-medium text-gray-700">
+                    {userName}
+                  </span>
+                  <span className="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 capitalize border border-gray-200">
+                    {userRoleLabel}
+                  </span>
+                </div>
+              )}
+
               <button
                 onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
-                className="hidden sm:flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-[#46BB39] hover:bg-green-50 rounded-lg transition-colors font-medium border border-gray-100"
+                className="hidden sm:flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-[#F67C01] hover:bg-orange-50 rounded-lg transition-colors font-medium border border-gray-100"
                 title={t('nav.toggle_language')}
               >
                 <Globe className="w-4 h-4" />
@@ -54,37 +78,19 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
               </button>
               {(role === 'agent' || role === 'admin') && (
                 <button
-                  onClick={() => navigate('/agent-dashboard')}
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-[#46BB39] hover:bg-green-50 rounded-lg transition-colors font-medium"
-                  title={t('nav.agent_dashboard')}
+                  onClick={() => navigate('/dashboard')}
+                  className="hidden sm:flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-[#F67C01] hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                  title={t('agent.dashboard')}
                 >
                   <BarChart3 className="w-4 h-4" />
-                  <span>{t('nav.agent')}</span>
-                </button>
-              )}
-              {role === 'admin' && (
-                <button
-                  onClick={() => navigate('/admin/analytics')}
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-[#F67C01] hover:bg-orange-50 rounded-lg transition-colors font-medium"
-                  title={t('nav.admin_dashboard')}
-                >
-                  <Shield className="w-4 h-4" />
-                  <span>{t('nav.admin')}</span>
+                  <span>{t('agent.dashboard')}</span>
                 </button>
               )}
               {isAuthenticated ? (
                 <>
-                  <div className="hidden sm:flex items-center mr-2">
-                    <span className="text-sm font-medium text-gray-700">
-                      {user?.name || user?.username || 'User'}
-                    </span>
-                    <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 capitalize border border-gray-200">
-                      {role || t('users.customer')}
-                    </span>
-                  </div>
                   <button
                     onClick={() => navigate('/settings')}
-                    className="flex items-center justify-center w-11 h-11 bg-white border border-gray-200 text-gray-600 rounded-full hover:shadow-md hover:bg-gray-50 transition-all hover:scale-105"
+                    className="hidden sm:flex items-center justify-center w-11 h-11 bg-white border border-gray-200 text-gray-600 rounded-full hover:shadow-md hover:bg-gray-50 transition-all hover:scale-105"
                     title={t('nav.settings')}
                   >
                     <Settings className="w-5 h-5 text-gray-600" />
@@ -94,17 +100,17 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                       await logout();
                       navigate('/');
                     }}
-                    className="flex items-center justify-center w-11 h-11 bg-white border border-gray-200 text-gray-600 rounded-full hover:shadow-md hover:bg-gray-50 transition-all hover:scale-105"
+                    className="hidden sm:flex items-center justify-center w-11 h-11 bg-white border border-gray-200 text-gray-600 rounded-full hover:shadow-md hover:bg-gray-50 transition-all hover:scale-105"
                     title={t('nav.sign_out')}
                   >
                     <LogOut className="w-5 h-5 text-gray-600" />
                   </button>
                 </>
               ) : (
-                <Link to="/login" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F67C01] to-[#46BB39] text-white rounded-lg transition-transform hover:scale-105 font-medium shadow-md">
-                    <LogIn className="w-4 h-4" />
-                    <span>{t('nav.login')}</span>
-                  </Link>
+                <Link to="/login" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] text-white rounded-lg transition-transform hover:scale-105 font-medium shadow-md">
+                  <LogIn className="w-4 h-4" />
+                  <span>{t('nav.login')}</span>
+                </Link>
               )}
             </div>
           </div>
@@ -112,12 +118,12 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-100 bg-white shadow-lg absolute w-full left-0 z-50">
+          <div className="sm:hidden border-t border-gray-100 bg-white shadow-lg absolute w-full left-0 z-50">
             <div className="px-4 py-4 space-y-2">
               {isAuthenticated && (
                 <div className="mb-4 pb-4 border-b border-gray-100 px-4">
-                  <p className="font-medium text-gray-900">{user?.name || user?.username || 'User'}</p>
-                  <p className="text-sm text-gray-500 capitalize">{role || t('users.customer')}</p>
+                  <p className="font-medium text-gray-900">{userName}</p>
+                  <p className="text-sm text-gray-500 capitalize">{userRoleLabel}</p>
                 </div>
               )}
 
@@ -126,7 +132,7 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
                   setLanguage(language === 'en' ? 'fr' : 'en');
                   setMobileMenuOpen(false);
                 }}
-                className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-[#46BB39] hover:bg-green-50 rounded-lg transition-all font-medium"
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-[#F67C01] hover:bg-orange-50 rounded-lg transition-all font-medium"
               >
                 <Globe className="w-4 h-4" />
                 <span>{t('nav.language')}: <span className="uppercase">{language}</span></span>
@@ -134,20 +140,11 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
 
               {(role === 'agent' || role === 'admin') && (
                 <button
-                  onClick={() => { navigate('/agent-dashboard'); setMobileMenuOpen(false); }}
-                  className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-[#46BB39] hover:bg-green-50 rounded-lg transition-all font-medium"
-                >
-                  <BarChart3 className="w-4 h-4 text-[#46BB39]" />
-                  <span>{t('nav.agent_dashboard')}</span>
-                </button>
-              )}
-              {role === 'admin' && (
-                <button
-                  onClick={() => { navigate('/admin/analytics'); setMobileMenuOpen(false); }}
+                  onClick={() => { navigate('/dashboard'); setMobileMenuOpen(false); }}
                   className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:text-[#F67C01] hover:bg-orange-50 rounded-lg transition-all font-medium"
                 >
-                  <Shield className="w-4 h-4 text-[#F67C01]" />
-                  <span>{t('nav.admin_dashboard')}</span>
+                  <BarChart3 className="w-4 h-4 text-[#F67C01]" />
+                  <span>{t('agent.dashboard')}</span>
                 </button>
               )}
 
@@ -186,7 +183,7 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
 
       {/* Floating Action Button */}
       <button
-        onClick={() => isAuthenticated ? navigate('/post') : navigate('/login')}
+        onClick={() => isAuthenticated ? navigate('/post') : navigateToLoginForSupportWrite()}
         className="fixed bottom-8 right-8 z-40 flex items-center gap-2 px-6 py-4 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] text-white rounded-full shadow-2xl hover:shadow-[#F67C01]/50 transition-all font-semibold hover:scale-110 group"
         aria-label={t('nav.ask_question')}
       >

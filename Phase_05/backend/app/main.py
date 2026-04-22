@@ -4,27 +4,37 @@ Purpose: Backend application entry point. Configures FastAPI, CORS, and Database
 Usage: Run via uvicorn (e.g., `uvicorn app.main:app`).
 Architecture: Root level - App configuration and Middleware.
 """
-from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+
 from app.api.v1.api import api_router
+from app.core.config import settings
 from app.core.exceptions import (
+    AuthenticationException,
+    BusinessRuleViolationException,
     NotFoundException,
     PermissionDeniedException,
-    BusinessRuleViolationException,
-    AuthenticationException
+)
+from app.db import base  # noqa: F401
+from app.db.database import engine
+from app.models.support import AiQueryLog, FAQ, ForumCategory, ForumPost, ForumTopic, SUPPORT_SCHEMA, SupportUserRoleAssignment, ReportedContent
+
+support_api_prefix = settings.SUPPORT_API_PREFIX.rstrip("/")
+if support_api_prefix and not support_api_prefix.startswith("/"):
+    support_api_prefix = f"/{support_api_prefix}"
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version="1.0.0",
+    docs_url=f"{support_api_prefix}/docs" if support_api_prefix else "/docs",
+    openapi_url=f"{support_api_prefix}/openapi.json" if support_api_prefix else "/openapi.json",
 )
 
-from app.db.database import engine
-from app.db.base import Base
-from sqlalchemy import inspect
-
-app = FastAPI(title="Osomba API", version="1.0.0")
-
-# CORS middleware MUST be added before anything else to catch 404s and redirects
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -59,48 +69,44 @@ async def authentication_exception_handler(request: Request, exc: Authentication
         content={"detail": exc.message},
     )
 
-# Create database tables (with error handling for AWS deployment)
 try:
-    # Check if we have any tables already
-    inspector = inspect(engine)
-    existing_tables = inspector.get_table_names()
-
-    # Compare with our Base metadata to find missing tables
-    tables_to_create = []
-    for table_name, table_object in Base.metadata.tables.items():
-        if table_name not in existing_tables:
-            tables_to_create.append(table_object)
-
-    if tables_to_create:
-        missing_names = [t.name for t in tables_to_create]
-        print(f"Found missing tables: {missing_names}. Creating them now...")
-        
-        # We pass the specific list of missing tables to create_all
-        Base.metadata.create_all(bind=engine, tables=tables_to_create)
-        print("Missing tables created successfully.")
-    else:
-        print("All database tables already exist. Skipping creation.")
-        
+    support_tables = [
+        ForumCategory.__table__,
+        ForumTopic.__table__,
+        ForumPost.__table__,
+        FAQ.__table__,
+        AiQueryLog.__table__,
+        SupportUserRoleAssignment.__table__,
+        ReportedContent.__table__,
+    ]
+    with engine.begin() as connection:
+        # Support tables use pgvector embeddings, so ensure the extension exists first.
+        connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {SUPPORT_SCHEMA}"))
+        for table in support_tables:
+            table.create(bind=connection, checkfirst=True)
 except Exception as e:
     print(f"Warning: Database initialization failed: {e}")
-    # Continue anyway - app will still start
 
-# Removed duplicated CORS middleware from bottom
-
-app.include_router(api_router, prefix="/api/v1")
-
+api_root = APIRouter(prefix=support_api_prefix) if support_api_prefix else APIRouter()
+api_root.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_root)
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to Osomba API"}
+    return {"message": "Welcome to Osomba Support API"}
 
 
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
 
-@app.post("/init-db")
-def init_db():
-    Base.metadata.create_all(bind=engine)
-    return {"status": "Database initialized"}
+if support_api_prefix:
+    @app.get(f"{support_api_prefix}/")
+    def read_prefixed_root():
+        return read_root()
 
+
+    @app.get(f"{support_api_prefix}/health")
+    def prefixed_health_check():
+        return health_check()

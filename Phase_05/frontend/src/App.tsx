@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -11,12 +11,12 @@ import { AIHelpPage } from "./pages/AIHelpPage";
 import { AgentDashboardPage } from "./pages/AgentDashboardPage";
 import { FAQPage } from "./pages/FAQPage";
 import { EditFAQPage } from "./pages/EditFAQPage";
-import { AnalyticsDashboardPage } from "./pages/AnalyticsDashboardPage";
 import { UserManagementPage } from "./pages/UserManagementPage";
 import { CategoryManagementPage } from "./pages/CategoryManagementPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { ContactUsPage } from "./pages/ContactUsPage";
 
 export default function App() {
   return (
@@ -25,53 +25,64 @@ export default function App() {
         <Router>
           <ScrollToTop />
           <Routes>
-            {/* Protected Pages with Header */}
+            {/* Public Pages with Header */}
             <Route
               path="/"
               element={
-                <ProtectedRoute>
+                <>
                   <Header />
                   <HomePage />
-                </ProtectedRoute>
+                </>
               }
             />
             <Route
               path="/thread/:id"
               element={
-                <ProtectedRoute>
+                <>
                   <Header showSearch={false} />
                   <ThreadDetailPage />
-                </ProtectedRoute>
+                </>
               }
             />
+            <Route
+              path="/ai-help"
+              element={
+                <>
+                  <Header showSearch={false} />
+                  <AIHelpPage />
+                </>
+              }
+            />
+            <Route
+              path="/faq/:id"
+              element={
+                <>
+                  <Header showSearch={false} />
+                  <FAQPage />
+                </>
+              }
+            />
+            <Route
+              path="/contact-us"
+              element={
+                <>
+                  <Header showSearch={false} />
+                  <ContactUsPage />
+                </>
+              }
+            />
+
             {/* Auth Pages */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             
+            {/* Protected Pages */}
             <Route
               path="/post"
               element={
                 <ProtectedRoute>
                   <Header showSearch={false} minimal />
                   <PostQuestionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/ai-help"
-              element={
-                <ProtectedRoute>
-                  <Header showSearch={false} />
-                  <AIHelpPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/faq/:id"
-              element={
-                <ProtectedRoute>
-                  <Header showSearch={false} />
-                  <FAQPage />
                 </ProtectedRoute>
               }
             />
@@ -87,8 +98,23 @@ export default function App() {
             />
 
             {/* Agent/Admin Pages without Header */}
-            <Route path="/agent-dashboard" element={<ProtectedRoute requiredRole="agent"><AgentDashboardPage /></ProtectedRoute>} />
-            <Route path="/admin/analytics" element={<ProtectedRoute requiredRole="admin"><AnalyticsDashboardPage /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute anyAgentOrAdmin={true}><AgentDashboardPage /></ProtectedRoute>} />
+            <Route
+              path="/agent-dashboard"
+              element={
+                <ProtectedRoute anyAgentOrAdmin={true}>
+                  <Navigate to="/dashboard" replace />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/analytics"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <Navigate to="/dashboard?tab=analytics" replace />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><UserManagementPage /></ProtectedRoute>} />
             <Route path="/admin/categories" element={<ProtectedRoute requiredRole="admin"><CategoryManagementPage /></ProtectedRoute>} />
             <Route path="/admin/faq/:id/edit" element={<ProtectedRoute anyAgentOrAdmin={true}><Header showSearch={false} /><EditFAQPage /></ProtectedRoute>} />

@@ -3,7 +3,11 @@
 .gemini/
 
 .DS_Store
-.DS_Store
-.DS_Store
-.DS_Store
 target/
+Phase_05/.codex/context.md
+Phase_05/backend/.env
+Phase_05/frontend/.env
+Phase_05/frontend/node_modules/
+Phase_05/frontend/build/
+Phase_05/backend/.pytest_cache/
+Phase_05/backend/__pycache__/

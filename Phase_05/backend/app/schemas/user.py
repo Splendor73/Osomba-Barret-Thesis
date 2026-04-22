@@ -41,6 +41,7 @@ class UserUpdate(BaseModel):
     city: Optional[str] = None
     country: Optional[str] = None
     bio: Optional[str] = None
+    marketing_opt_in: Optional[bool] = None
     role: Optional[UserRole] = None
 
 

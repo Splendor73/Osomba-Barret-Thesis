@@ -47,7 +47,7 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
         
         # 3. Retrieve actual content details based on source type
         if source_type == 'faq':
-            faq = db.query(FAQ).filter(FAQ.id == source_id).first()
+            faq = db.query(FAQ).filter(FAQ.id == source_id, FAQ.is_active.is_(True)).first()
             if faq:
                 category_name = faq.category.name if hasattr(faq, 'category') and faq.category else "General"
                 suggestions.append(AiSuggestion(
@@ -59,7 +59,7 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
                     confidence=confidence
                 ))
         elif source_type == 'forum':
-            topic = db.query(ForumTopic).filter(ForumTopic.id == source_id).first()
+            topic = db.query(ForumTopic).filter(ForumTopic.id == source_id, ForumTopic.is_deleted.is_(False)).first()
             if topic:
                 category_name = topic.category.name if topic.category else "General"
                 suggestions.append(AiSuggestion(
@@ -77,6 +77,7 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
         existing_ids = set()
 
         faq_hits = db.query(FAQ).filter(
+            FAQ.is_active.is_(True),
             (FAQ.question.ilike(keyword)) | (FAQ.answer.ilike(keyword))
         ).limit(5).all()
         for faq in faq_hits:
@@ -89,6 +90,7 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
             existing_ids.add(('faq', faq.id))
 
         topic_hits = db.query(ForumTopic).filter(
+            ForumTopic.is_deleted.is_(False),
             (ForumTopic.title.ilike(keyword)) | (ForumTopic.content.ilike(keyword))
         ).limit(5).all()
         for topic in topic_hits:

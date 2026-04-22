@@ -36,8 +36,8 @@ export function UserManagementPage() {
   const { t } = useLanguage();
 
   const navItems = [
-    { icon: MessageSquare, label: t('agent.unanswered'), path: "/agent-dashboard", badge: null },
-    { icon: BarChart3, label: t('nav.analytics'), path: "/admin/analytics", badge: null },
+    { icon: MessageSquare, label: t('agent.dashboard'), path: "/dashboard", badge: null },
+    { icon: BarChart3, label: t('nav.analytics'), path: "/dashboard?tab=analytics", badge: null },
     { icon: Users, label: t('nav.user_management'), path: "/admin/users", badge: null },
     { icon: Settings, label: t('nav.category_management'), path: "/admin/categories", badge: null },
   ];
@@ -131,7 +131,7 @@ export function UserManagementPage() {
   const getRoleBadgeColor = (role: string | null) => {
     const display = getRoleDisplay(role);
     if (display === "Admin") return "bg-[#F67C01] text-white";
-    if (display === "Agent") return "bg-[#46BB39] text-white";
+    if (display === "Agent") return "bg-orange-100 text-[#B45309]";
     return "bg-gray-200 text-gray-700";
   };
 
@@ -196,7 +196,7 @@ export function UserManagementPage() {
             />
             <div>
               <p className="text-white text-sm font-medium">{currentUser?.name || currentUser?.full_name || "Admin User"}</p>
-              <p className="text-green-100 text-xs uppercase">{currentRole}</p>
+              <p className="text-orange-100 text-xs uppercase">{currentRole}</p>
             </div>
           </div>
         </div>
@@ -215,7 +215,7 @@ export function UserManagementPage() {
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#46BB39]"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01]"
                 >
                   <option value="All">{t('users.all')}</option>
                   <option value="Customer">{t('users.customer')}</option>
@@ -231,7 +231,7 @@ export function UserManagementPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onBlur={handleSearchBlur}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearchBlur()}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#46BB39] w-80"
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F67C01] w-80"
                   />
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 </div>
@@ -263,7 +263,7 @@ export function UserManagementPage() {
               <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm text-gray-600 font-medium">{t('users.agents')}</p>
-                  <Shield className="w-5 h-5 text-[#46BB39]" />
+                  <Shield className="w-5 h-5 text-[#F59E0B]" />
                 </div>
                 <p className="text-2xl text-gray-900 font-bold">
                   {users.filter((u) => getRoleDisplay(u.role) === "Agent").length}
@@ -317,7 +317,7 @@ export function UserManagementPage() {
                     <td className="px-6 py-4">
                       <button
                         onClick={() => openRoleModal(u)}
-                        className="text-[#46BB39] hover:text-[#21825C] font-medium text-sm transition-colors"
+                        className="text-[#F67C01] hover:text-[#B45309] font-medium text-sm transition-colors"
                       >
                         {t('users.change_role')}
                       </button>
@@ -387,8 +387,8 @@ export function UserManagementPage() {
                         key={r.val}
                         className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50"
                         style={{
-                          borderColor: newRole === r.val ? "#46BB39" : "#E5E7EB",
-                          backgroundColor: newRole === r.val ? "#F0FDF4" : "white",
+                          borderColor: newRole === r.val ? "#F67C01" : "#E5E7EB",
+                          backgroundColor: newRole === r.val ? "#FFF7ED" : "white",
                         }}
                       >
                         <input
@@ -397,7 +397,7 @@ export function UserManagementPage() {
                           value={r.val}
                           checked={newRole === r.val}
                           onChange={(e) => setNewRole(e.target.value)}
-                          className="w-4 h-4 text-[#46BB39]"
+                          className="w-4 h-4 text-[#F67C01]"
                         />
                         <div className="flex-1">
                           <p className="text-gray-900 font-medium">{r.label}</p>
@@ -424,7 +424,7 @@ export function UserManagementPage() {
                 </button>
                 <button
                   onClick={handleRoleChange}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#46BB39] to-[#21825C] text-white rounded-lg hover:shadow-lg transition-all font-medium"
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#F67C01] to-[#F89C4A] text-white rounded-lg hover:shadow-lg transition-all font-medium"
                 >
                   {t('buttons.confirm_change')}
                 </button>

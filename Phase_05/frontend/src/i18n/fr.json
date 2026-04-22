@@ -17,6 +17,8 @@
     "settings": "Paramètres",
     "toggle_language": "Changer de langue",
     "language": "Langue",
+    "open_menu": "Ouvrir le menu",
+    "close_menu": "Fermer le menu",
     "agent": "Agent",
     "admin": "Admin"
   },
@@ -175,6 +177,13 @@
     "browse_all": "Parcourir toutes les FAQ →",
     "edit_faq": "Modifier la FAQ"
   },
+  "contact": {
+    "title": "Nous contacter",
+    "subtitle": "Il s'agit pour l'instant d'informations de contact provisoires pour le support Osomba.",
+    "email_label": "E-mail",
+    "phone_label": "Téléphone",
+    "placeholder_note": "Coordonnées provisoires pour le moment."
+  },
   "login": {
     "welcome": "Bon Retour",
     "subtitle": "Connectez-vous à votre compte",
@@ -184,7 +193,8 @@
     "password_placeholder": "Entrez votre mot de passe",
     "signing_in": "Connexion en cours...",
     "sign_in": "Se Connecter",
-    "error": "Échec de la connexion"
+    "error": "Échec de la connexion",
+    "support_write_required": "Connectez-vous pour publier ou signaler du contenu dans le support Osomba."
   },
   "register": {
     "verify_email": "Vérifier l'e-mail",
@@ -236,8 +246,11 @@
     "col_author": "Auteur",
     "col_posted": "Publié",
     "all_caught_up": "Tout est à jour ! Aucun fil sans réponse.",
+    "no_matching_threads": "Aucun fil sans réponse ne correspond aux filtres actuels.",
     "check_back": "Excellent travail ! Revenez plus tard.",
+    "try_adjusting_filters": "Essayez de modifier les filtres ou la recherche pour afficher plus de fils.",
     "load_error": "Impossible de charger les fils.",
+    "matching_filters": "Correspond aux filtres",
     "over_24h": "Plus de 24h",
     "fallback_name": "Agent de Support",
     "dashboard": "Tableau de bord",
