@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { loginUser } from '../lib/auth';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
@@ -43,7 +44,9 @@ export const LoginPage = () => {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center -mb-2">
-          <img src="/osomba-logo.png" alt="Osomba" className="h-48 w-auto" />
+          <Link to="/" aria-label="Go to support home page">
+            <img src="/osomba-logo.png" alt="Osomba" className="h-48 w-auto" />
+          </Link>
         </div>
 
         {/* Card */}
