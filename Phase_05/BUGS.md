@@ -33,14 +33,14 @@
 ### BUG-002: User inserts fail because model omits non-null account columns
 - **Severity:** High
 - **Location:** `backend/app/models/user.py`
-- **Description:** Backend tests that create users fail before reaching support endpoints because SQLAlchemy inserts omit database-required account columns.
+- **Description:** Backend tests that create users fail before reaching support endpoints because SQLAlchemy inserts omit database-required account moderation columns.
 - **Steps to Reproduce:**
   1. Run `PYTHONPATH=. ./venv/bin/pytest tests/test_api_forum.py -q`.
   2. Observe fixture setup failing during user insert.
 - **Expected Behavior:** Test and runtime user inserts should provide all required non-null user columns.
 - **Actual Behavior:** PostgreSQL rejects the insert with non-null violations such as `is_verified` and `is_banned`.
 - **Root Cause:** The database schema includes account verification and moderation fields that `backend/app/models/user.py` did not map.
-- **Suggested Fix:** Add the missing verification, business verification, and ban fields to the `User` model with defaults matching the database intent.
+- **Suggested Fix:** Add the missing verification and ban fields to the `User` model with defaults matching the database intent.
 - **Status:** Verified
 
 ### BUG-001: Support redirects can point to main Osomba site
