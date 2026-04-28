@@ -46,6 +46,7 @@ export function AIHelpPage() {
     }
   }, [searchParams]);
 
+  // Sends the user's question to FastAPI, which embeds it and returns FAQ/forum matches.
   const handleSearch = async (searchQuery?: string) => {
     const q = searchQuery || query;
     if (q.trim().length < 3) return;
@@ -55,6 +56,7 @@ export function AIHelpPage() {
     setError(null);
 
     try {
+      // Axios attaches the Cognito token before POST /support/ai/suggest reaches the backend.
       const response = await api.post('/support/ai/suggest', { 
         query: q, 
         language,
@@ -71,6 +73,7 @@ export function AIHelpPage() {
     }
   };
 
+  // If AI results are not enough, log the escalation and continue into the forum post flow.
   const handleEscalate = async () => {
     if (sessionId) {
       try {
@@ -92,6 +95,7 @@ export function AIHelpPage() {
     });
   };
 
+  // Search cards route back to the original FAQ or forum thread returned by the API.
   const handleResultClick = (result: SuggestionCard) => {
     if (result.source === "FAQ") {
       navigate(`/faq/${result.id}`);
@@ -201,6 +205,7 @@ export function AIHelpPage() {
               </div>
             ) : results.length > 0 ? (
               <div>
+                {/* Results come back normalized as cards from FAQ and Forum sources. */}
                 <h2 className="mb-6 text-gray-900">
                   {t('ai.found_results').replace('{count}', String(results.length)).replace('{noun}', results.length === 1 ? 'answer' : 'answers')}
                 </h2>

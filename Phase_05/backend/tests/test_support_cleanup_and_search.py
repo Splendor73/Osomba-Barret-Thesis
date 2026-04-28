@@ -163,16 +163,24 @@ def test_purge_deleted_support_content_removes_old_records_only(db_session):
     db_session.add_all([old_topic_report, old_post_report, recent_post_report])
     db_session.commit()
 
+    old_topic_id = old_topic.id
+    old_post_id = old_post.id
+    recent_topic_id = recent_topic.id
+    recent_post_id = recent_post.id
+    old_topic_report_id = old_topic_report.id
+    old_post_report_id = old_post_report.id
+    recent_post_report_id = recent_post_report.id
+
     summary = purge_deleted_support_content(db_session, now=cutoff_now)
 
     assert summary["purged_topics"] == 1
     assert summary["purged_posts"] >= 1
     assert summary["purged_reports"] >= 2
 
-    assert db_session.query(ForumTopic).filter(ForumTopic.id == old_topic.id).first() is None
-    assert db_session.query(ForumPost).filter(ForumPost.id == old_post.id).first() is None
-    assert db_session.query(ForumTopic).filter(ForumTopic.id == recent_topic.id).first() is not None
-    assert db_session.query(ForumPost).filter(ForumPost.id == recent_post.id).first() is not None
-    assert db_session.query(ReportedContent).filter(ReportedContent.id == old_topic_report.id).first() is None
-    assert db_session.query(ReportedContent).filter(ReportedContent.id == old_post_report.id).first() is None
-    assert db_session.query(ReportedContent).filter(ReportedContent.id == recent_post_report.id).first() is not None
+    assert db_session.query(ForumTopic).filter(ForumTopic.id == old_topic_id).first() is None
+    assert db_session.query(ForumPost).filter(ForumPost.id == old_post_id).first() is None
+    assert db_session.query(ForumTopic).filter(ForumTopic.id == recent_topic_id).first() is not None
+    assert db_session.query(ForumPost).filter(ForumPost.id == recent_post_id).first() is not None
+    assert db_session.query(ReportedContent).filter(ReportedContent.id == old_topic_report_id).first() is None
+    assert db_session.query(ReportedContent).filter(ReportedContent.id == old_post_report_id).first() is None
+    assert db_session.query(ReportedContent).filter(ReportedContent.id == recent_post_report_id).first() is not None

@@ -12,6 +12,7 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// English and French dictionaries are loaded once and selected at runtime by language key.
 const translations: Record<Language, any> = {
   en,
   fr
@@ -19,7 +20,7 @@ const translations: Record<Language, any> = {
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    // Check local storage for saved language, default to 'en'
+    // Persisted language keeps the user's English/French choice across refreshes.
     const saved = localStorage.getItem('osomba_language');
     if (saved === 'en' || saved === 'fr') {
       return saved;
@@ -28,6 +29,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   useEffect(() => {
+    // Store language changes immediately so every page sees the same locale.
     localStorage.setItem('osomba_language', language);
   }, [language]);
 
@@ -36,7 +38,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const t = (path: string): string => {
-    // e.g., 'nav.home' -> translations[language]['nav']['home']
+    // Dot-path lookup lets components call t('nav.home') without knowing the JSON shape.
     const keys = path.split('.');
     let current: any = translations[language];
     

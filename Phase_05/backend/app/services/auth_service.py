@@ -13,6 +13,7 @@ class AuthService:
     def __init__(self, db: Session):
         self.db = db
 
+    # Cognito sub is the stable identity link between AWS auth and our local User table.
     def get_or_provision_user(
         self, 
         sub: str, 
@@ -25,19 +26,19 @@ class AuthService:
         If not found, attempts to re-link an orphaned email user.
         If no orphan exists, provisions a new JIT user.
         """
-        # 1. Try to find existing user by SUB
+        # Existing users take the fastest path by matching the stored Cognito sub.
         user = self.db.query(User).filter(User.cognito_sub == sub).first()
         if user:
             return user
 
-        # 2. If user not found by SUB, we need an email to proceed (either for re-linking or creation)
+        # Without email we cannot safely relink an orphan account or create a new profile.
         if not email:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email is required for user provisioning. Please ensure your authentication token includes the email scope."
             )
 
-        # 3. Try to find orphaned user by Email
+        # Orphan relink handles users that existed before Cognito sub was saved.
         orphan = user_repo.get_user_by_email(self.db, email)
         if orphan:
             print(f"JIT: Re-linking existing user {email} to new sub {sub}")
@@ -53,8 +54,7 @@ class AuthService:
             self.db.refresh(orphan)
             return orphan
 
-        # 4. Provision new JIT User
-        # Provide a default terms_version if not present to ensure the user is saved
+        # First authenticated request creates a local user row for app-owned data and roles.
         final_terms_version = terms_version or "1.0"
 
         user = User(

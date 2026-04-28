@@ -3,7 +3,7 @@ from jose import jwt, JWTError
 from app.core.config import settings
 from fastapi import HTTPException
 
-# Global cache for JWKS
+# JWKS is cached so every protected request does not refetch Cognito signing keys.
 _jwks_cache = None
 
 def get_jwks():
@@ -20,12 +20,13 @@ def get_jwks():
 
 def verify_cognito_token(token: str):
     try:
+        # The token header tells us which Cognito public key should verify the signature.
         header = jwt.get_unverified_header(token)
         kid = header.get("kid")
         if not kid:
             raise HTTPException(status_code=401, detail="Token missing kid header")
         
-        # Find the matching key in JWKS
+        # Match kid against Cognito JWKS before decoding the signed token.
         jwks = get_jwks()
         key = next((k for k in jwks["keys"] if k["kid"] == kid), None)
         if not key:
@@ -35,6 +36,7 @@ def verify_cognito_token(token: str):
         user_pool_id = settings.cognito_user_pool_id
         app_client_id = settings.cognito_app_client_id
         
+        # jose validates signature, audience, and issuer before returning trusted claims.
         payload = jwt.decode(
             token,
             key,

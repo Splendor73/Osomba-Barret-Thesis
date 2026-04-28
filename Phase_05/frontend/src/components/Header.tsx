@@ -5,6 +5,8 @@ import Vector from "../imports/Vector";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 
+const MAIN_OSOMBA_URL = "https://www.osomba.com/";
+
 interface HeaderProps {
   minimal?: boolean;
   showSearch?: boolean;
@@ -39,7 +41,7 @@ export function Header({ minimal = false, showSearch = true }: HeaderProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 h-20">
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <a href="https://osomba.com" aria-label="Go to Osomba marketplace home page" className="flex shrink-0 items-center">
+              <a href={MAIN_OSOMBA_URL} aria-label="Go to Osomba marketplace home page" className="flex shrink-0 items-center">
                 <img src="/osomba-logo.png" alt="Osomba" className="h-28 sm:h-32 w-auto" />
               </a>
             </div>

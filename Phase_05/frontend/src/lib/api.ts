@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { fetchAuthSession } from 'aws-amplify/auth';
 
+// Shared backend client: frontend pages call relative paths against the FastAPI /api/v1 base.
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/support-api/api/v1',
   headers: {
@@ -8,7 +9,7 @@ const api = axios.create({
   },
 });
 
-// Attach Cognito ID token to every request (if logged in)
+// Each API request asks Amplify for the current Cognito ID token and sends it as Bearer auth.
 api.interceptors.request.use(async (config) => {
   try {
     const session = await fetchAuthSession();
@@ -17,17 +18,16 @@ api.interceptors.request.use(async (config) => {
       config.headers.Authorization = `Bearer ${token}`;
     }
   } catch {
-    // Not authenticated — that's fine for public endpoints
+    // Public endpoints can still run without a token.
   }
   return config;
 });
 
-// Response interceptor for global error handling
+// A backend 401 means the session is missing/expired, so restart the login flow.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid — redirect to login
       window.location.href = '/login';
     }
     return Promise.reject(error);

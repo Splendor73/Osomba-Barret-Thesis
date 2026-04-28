@@ -22,13 +22,14 @@ async def get_current_user(
     Authenticates the user via Cognito JWT.
     Delegates JIT (Just-In-Time) provisioning to AuthService.
     """
+    # FastAPI extracts the Authorization: Bearer token before protected endpoints run.
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    # 1. Verify Token
+    # Verify the Cognito JWT signature/issuer/audience before trusting any user claims.
     try:
         payload = verify_cognito_token(credentials.credentials)
     except Exception as e:
@@ -41,7 +42,7 @@ async def get_current_user(
     if not sub:
         raise credentials_exception
 
-    # 2. Extract JIT Parameters (Optional)
+    # Optional request body fields help JIT provisioning store onboarding metadata.
     terms_version = None
     marketing_opt_in = False
     
@@ -69,7 +70,7 @@ async def get_current_user(
         # Body parsing failed or empty, proceed without JIT params
         pass
 
-    # 3. Delegate to AuthService (Preserving Refactored Architecture)
+    # AuthService links Cognito sub to a database User or creates one on first request.
     auth_service = AuthService(db)
     try:
         user = auth_service.get_or_provision_user(
@@ -93,6 +94,7 @@ async def get_admin_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
 ):
+    # Admin endpoints accept either Cognito Admins group membership or the synced DB role.
     payload = verify_cognito_token(credentials.credentials)
     support_role = get_effective_support_role(db, current_user, payload)
     if support_role != "admin":
@@ -104,6 +106,7 @@ async def get_agent_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
 ):
+    # Agent routes allow Agents/Admins from Cognito groups or matching database roles.
     payload = verify_cognito_token(credentials.credentials)
     support_role = get_effective_support_role(db, current_user, payload)
     if support_role not in ("agent", "admin"):
@@ -115,6 +118,7 @@ async def get_optional_user(
     credentials: HTTPAuthorizationCredentials = Depends(optional_security),
     db: Session = Depends(get_db)
 ):
+    # Public endpoints can read the user when a token exists, but still work anonymously.
     if not credentials:
         return None
     try:

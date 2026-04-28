@@ -23,12 +23,14 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
+// Stores the signed-in Cognito user, derived role, and loading/auth flags for the whole app.
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
   const [role, setRole] = useState<Role>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Bridge from Cognito session data to React state used by ProtectedRoute and dashboards.
   const refreshSession = async () => {
     setLoading(true);
     try {
@@ -66,6 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     refreshSession();
   }, []);
 
+  // Logout clears both Cognito and the in-memory auth state used by the UI.
   const logout = async () => {
     await logoutUser();
     setUser(null);

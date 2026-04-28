@@ -5,7 +5,7 @@ from app.core.config import settings
 from app.models.support import FAQ, ForumTopic
 
 def get_bedrock_client():
-    """Initializes and returns the AWS Bedrock Runtime client."""
+    """Shared Bedrock Runtime client for embeddings and translation calls."""
     return boto3.client(
         'bedrock-runtime',
         region_name=settings.aws_region if hasattr(settings, 'aws_region') else 'us-east-1'
@@ -16,6 +16,7 @@ def generate_embedding(text_input: str) -> list[float]:
     Generates a 384-dimensional vector embedding for the given text using AWS Bedrock.
     Model: amazon.titan-embed-text-v2:0 (or similar Titan embedding model)
     """
+    # This vector is stored/searched by pgvector so AI help can rank FAQ and forum matches.
     client = get_bedrock_client()
     
     # AWS Bedrock Titan Embeddings v2 Request Body
@@ -54,6 +55,7 @@ def translate_text(text: str, target_lang: str) -> str:
     """
     Translates text to the target language using AWS Bedrock (Amazon Nova Micro).
     """
+    # Forum/FAQ endpoints call this when React requests a non-English language.
     if not text or len(text.strip()) == 0:
         return text
         
@@ -106,9 +108,10 @@ def search_similar_content(db: Session, query_vector: list[float], limit: int = 
     Searches FAQs and ForumTopics for content embeddings most similar to the query vector.
     Uses ORM-based pgvector cosine distance queries.
     """
+    # Lower cosine distance means stronger semantic match; threshold filters weak results.
     max_distance = 1.0 - similarity_threshold
 
-    # Search FAQs
+    # Search FAQs first so official answers can appear beside forum threads.
     faq_results = (
         db.query(FAQ, FAQ.embedding.cosine_distance(query_vector).label("distance"))
         .filter(FAQ.embedding.isnot(None))
@@ -119,7 +122,7 @@ def search_similar_content(db: Session, query_vector: list[float], limit: int = 
         .all()
     )
 
-    # Search ForumTopics
+    # Search forum topics with the same vector logic used for FAQs.
     topic_results = (
         db.query(ForumTopic, ForumTopic.embedding.cosine_distance(query_vector).label("distance"))
         .filter(ForumTopic.embedding.isnot(None))
@@ -130,7 +133,7 @@ def search_similar_content(db: Session, query_vector: list[float], limit: int = 
         .all()
     )
 
-    # Combine into unified format expected by ai.py endpoint
+    # Return a unified source/id/similarity shape for the API endpoint to hydrate.
     results = []
     for faq, distance in faq_results:
         results.append({

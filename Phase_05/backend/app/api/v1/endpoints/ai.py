@@ -10,6 +10,7 @@ from app.core.config import settings
 router = APIRouter()
 
 class AiSuggestRequest(BaseModel):
+    # React sends the search text and language for POST /support/ai/suggest.
     query: str
     language: str = 'en'
     session_id: Optional[str] = None
@@ -31,10 +32,10 @@ class AiEscalateRequest(BaseModel):
 
 @router.post("/suggest", response_model=AiSuggestResponse)
 def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: OptionalUserDep):
-    # 1. Generate embedding using AWS Bedrock
+    # Turn the user's question into a vector before searching FAQ/forum content.
     vector = generate_embedding(request.query)
     
-    # 2. Search pgvector database
+    # pgvector returns the closest stored FAQ/topic embeddings above the threshold.
     similarity_threshold = settings.ai_similarity_threshold
     raw_results = search_similar_content(db, vector, limit=5, similarity_threshold=similarity_threshold)
     
@@ -45,7 +46,7 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
         similarity = float(row['similarity'])
         confidence = int(similarity * 100)
         
-        # 3. Retrieve actual content details based on source type
+        # Convert raw vector hits into the same card shape the React page renders.
         if source_type == 'faq':
             faq = db.query(FAQ).filter(FAQ.id == source_id, FAQ.is_active.is_(True)).first()
             if faq:
@@ -71,7 +72,7 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
                     confidence=confidence
                 ))
 
-    # Fallback: text-based search when semantic search returns nothing
+    # Keyword fallback keeps the demo useful when embeddings are missing or low confidence.
     if not suggestions:
         keyword = f"%{request.query}%"
         existing_ids = set()
@@ -102,7 +103,7 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
             ))
             existing_ids.add(('topic', topic.id))
 
-    # 4. Log to AiQueryLog
+    # Log each AI query so admin analytics can count searches and forum escalations.
     log = AiQueryLog(
         user_id=current_user.user_id if current_user else None,
         query_text=request.query,
@@ -121,6 +122,7 @@ def suggest_answers(request: AiSuggestRequest, db: SessionDep, current_user: Opt
 
 @router.post("/escalate")
 def escalate_query(request: AiEscalateRequest, db: SessionDep):
+    # React calls this before routing to /post so analytics can track AI deflection.
     log = db.query(AiQueryLog).filter(AiQueryLog.id == int(request.session_id)).first()
     if not log:
         raise HTTPException(status_code=404, detail="Query log not found")

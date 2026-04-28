@@ -3,6 +3,8 @@ from app.main import app
 from app.api.dependencies import get_current_user
 from app.core.config import settings
 from app.models.support import FAQ, ForumCategory, ForumTopic
+from app.models.user import User
+from datetime import datetime
 
 API_PREFIX = f"{settings.SUPPORT_API_PREFIX}{settings.API_V1_STR}"
 
@@ -53,6 +55,20 @@ def test_ai_suggest_excludes_inactive_faqs_and_deleted_topics(client, db_session
         db_session.add(category)
         db_session.commit()
         db_session.refresh(category)
+
+    for user_id in (1234, 1235):
+        if not db_session.query(User).filter_by(user_id=user_id).first():
+            db_session.add(
+                User(
+                    user_id=user_id,
+                    email=f"user{user_id}@example.com",
+                    full_name=f"User {user_id}",
+                    role="BUYER",
+                    accepted_terms_at=datetime.utcnow(),
+                    terms_version="1.0",
+                )
+            )
+    db_session.commit()
 
     active_faq = FAQ(
         question="Active FAQ",

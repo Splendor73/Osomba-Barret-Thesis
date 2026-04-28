@@ -35,6 +35,7 @@ export function PostQuestionPage() {
       setTitle(decodeURIComponent(q));
     }
 
+    // Load forum categories from FastAPI so the post form uses database categories.
     const fetchCategories = async () => {
       try {
         const res = await api.get('/support/categories/');
@@ -48,6 +49,7 @@ export function PostQuestionPage() {
     fetchCategories();
   }, [location.search]);
 
+  // Client validation mirrors backend expectations before creating the support topic.
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -71,10 +73,12 @@ export function PostQuestionPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Creates a forum topic through POST /support/topics, then opens the new thread response.
   const handleSubmit = async () => {
     if (validateForm()) {
       setIsSubmitting(true);
       try {
+        // The shared API client includes the Cognito token, so the backend can attach user_id.
         const res = await api.post('/support/topics', {
           title,
           content: body,

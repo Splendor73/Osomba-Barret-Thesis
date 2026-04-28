@@ -1,7 +1,7 @@
 import { Amplify } from 'aws-amplify';
 import { signIn, signUp, signOut, confirmSignUp, fetchAuthSession, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 
-// Configure Amplify with Cognito settings from env
+// Amplify reads the Cognito pool/client IDs from Vite env so auth can point at each deploy's pool.
 Amplify.configure({
   Auth: {
     Cognito: {
@@ -11,11 +11,13 @@ Amplify.configure({
   },
 });
 
+// Starts the Cognito sign-in flow and lets AuthContext refresh React state afterward.
 export async function loginUser(email: string, password: string) {
   const result = await signIn({ username: email, password });
   return result;
 }
 
+// Registers a Cognito user with email/name attributes used later for display.
 export async function registerUser(email: string, password: string, name: string) {
   const result = await signUp({
     username: email,
@@ -30,15 +32,18 @@ export async function registerUser(email: string, password: string, name: string
   return result;
 }
 
+// Confirms the verification code Cognito emails before the user can log in.
 export async function confirmRegistration(email: string, code: string) {
   const result = await confirmSignUp({ username: email, confirmationCode: code });
   return result;
 }
 
+// Ends the Cognito browser session; AuthContext clears local React state too.
 export async function logoutUser() {
   await signOut();
 }
 
+// Returns the active Cognito session, including tokens used by the Axios interceptor.
 export async function getSession() {
   try {
     const session = await fetchAuthSession();
@@ -48,6 +53,7 @@ export async function getSession() {
   }
 }
 
+// Pulls Cognito user attributes into a lightweight profile for the UI header/sidebar.
 export async function getUser() {
   try {
     const user = await getCurrentUser();
@@ -61,6 +67,7 @@ export async function getUser() {
   }
 }
 
+// Maps Cognito groups to app roles so routes and backend role checks use the same idea.
 export async function getUserRole(): Promise<'customer' | 'agent' | 'admin'> {
   try {
     const session = await fetchAuthSession();

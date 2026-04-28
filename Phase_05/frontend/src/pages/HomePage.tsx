@@ -228,6 +228,7 @@ export function HomePage() {
               </button>
             </div>
           </form>
+
         </div>
       </section>
 

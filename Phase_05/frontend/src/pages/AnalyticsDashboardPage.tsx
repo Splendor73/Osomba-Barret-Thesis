@@ -37,6 +37,7 @@ export function AnalyticsDashboardPage() {
   const [postsOverTime, setPostsOverTime] = useState<any[]>([]);
   const [categoryDist, setCategoryDist] = useState<any[]>([]);
 
+  // Exports the loaded admin analytics response into a local CSV for interview/demo reporting.
   const handleExport = () => {
     const rows = [
       [t('analytics.csv_metric'), t('analytics.csv_value')],
@@ -65,11 +66,13 @@ export function AnalyticsDashboardPage() {
 
   useEffect(() => {
     if (authLoading) return;
+    // Frontend guard keeps non-admin users away before the admin-only API calls run.
     if (role !== "admin") {
       navigate("/");
       return;
     }
 
+    // Loads KPI cards and charts from FastAPI admin analytics endpoints in one round trip.
     const fetchAnalytics = async () => {
       try {
         const [overviewRes, postsRes, categoryRes] = await Promise.all([

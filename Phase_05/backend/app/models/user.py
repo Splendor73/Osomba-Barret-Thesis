@@ -36,6 +36,10 @@ class User(Base):
     is_verified = Column(Boolean, default=False, nullable=False)
     is_banned = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    business_verification_status = Column(String, default="NONE", nullable=False)
+    business_form_key = Column(String, nullable=True)
+    business_license_key = Column(String, nullable=True)
+    is_business_verified = Column(Boolean, default=False, nullable=False)
 
     support_role_assignments = relationship(
         "SupportUserRoleAssignment",

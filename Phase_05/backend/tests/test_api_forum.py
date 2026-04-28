@@ -122,7 +122,12 @@ def test_agent_official_answer(client, mock_user, mock_agent):
     
     import app.api.v1.endpoints.forum as forum_mod
     original_send = forum_mod.send_notification_email
-    forum_mod.send_notification_email = lambda *args, **kwargs: True
+    sent_messages = []
+    forum_mod.send_notification_email = lambda to_email, subject, html_content: sent_messages.append({
+        "to_email": to_email,
+        "subject": subject,
+        "html_content": html_content,
+    }) or True
     
     try:
         # Post official answer
@@ -135,6 +140,9 @@ def test_agent_official_answer(client, mock_user, mock_agent):
         assert data["content"] == "Here is the official answer."
         assert data["is_accepted_answer"] is True
         assert data["user_id"] == 1002
+        assert sent_messages
+        assert "https://support.osomba.com/thread/" in sent_messages[0]["html_content"]
+        assert "https://osomba.com/thread/" not in sent_messages[0]["html_content"]
     finally:
         forum_mod.send_notification_email = original_send
     
@@ -197,9 +205,9 @@ def test_anonymous_can_read_but_cannot_write(client, mock_user):
         json={"content": "Readable reply"}
     )
     post_id = reply_resp.json()["id"]
-    app.dependency_overrides.clear()
+    app.dependency_overrides.pop(get_current_user, None)
 
-    topics_resp = client.get(f"{API_PREFIX}/support/topics")
+    topics_resp = client.get(f"{API_PREFIX}/support/topics", params={"limit": 100})
     assert topics_resp.status_code == 200
     assert any(topic["id"] == topic_id for topic in topics_resp.json())
 
@@ -215,19 +223,19 @@ def test_anonymous_can_read_but_cannot_write(client, mock_user):
         f"{API_PREFIX}/support/topics",
         json={"title": "Guest write", "content": "Guests should not write.", "category_id": mock_user.tmp_category_id}
     )
-    assert guest_topic_create.status_code == 403
+    assert guest_topic_create.status_code == 401
 
     guest_reply_create = client.post(
         f"{API_PREFIX}/support/topics/{topic_id}/posts",
         json={"content": "Guests should not reply."}
     )
-    assert guest_reply_create.status_code == 403
+    assert guest_reply_create.status_code == 401
 
     guest_report = client.post(
         f"{API_PREFIX}/support/reports",
         json={"topic_id": topic_id, "reason": "Guest report should require login"}
     )
-    assert guest_report.status_code == 403
+    assert guest_report.status_code == 401
 
 def test_blocked_user_cannot_write_support_content(client, mock_user, mock_blocked_user):
     app.dependency_overrides[get_current_user] = lambda: mock_user
